@@ -62,10 +62,6 @@ namespace DemoAgent
             recordService.StartWatching(OnDeviceConnected, OnDeviceDisconnected);
             if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) || recordService.IsRecording())
             {
-                var iconImage = RecordButton.Template.FindName("IconImage", RecordButton) as ImageAwesome;
-                if (iconImage.Icon == FontAwesomeIcon.Microphone)
-                {
-                }
                 UpdateUIForRecording();
             }
             LoadFiles();

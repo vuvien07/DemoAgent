@@ -21,7 +21,6 @@ namespace DemoAgent
     {
         public ServiceProvider? serviceProvider;
         System.Windows.Forms.NotifyIcon nIcon = new System.Windows.Forms.NotifyIcon();
-        //private System.Windows.Forms.ContextMenuStrip menuStrip = new System.Windows.Forms.ContextMenuStrip();
         public Window currWindow;
         public Account? account;
 
