@@ -27,6 +27,7 @@
             <Label Content="Recently Recorded" FontSize="20" FontWeight="Bold"/>
             <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Height="365">
                 <ListView x:Name="lvRecordings" Width="290" BorderThickness="0" Background="Transparent"  MouseWheel="lvRecordings_MouseWheel" >
+                    
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <StackPanel>
@@ -35,12 +36,13 @@
                                 <TextBlock Text="{Binding Description}" FontSize="12"/>
                             </StackPanel>
                         </DataTemplate>
-
                     </ListView.ItemTemplate>
                     <ListView.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Play"/>
-                            <MenuItem Header="Delete" />
+                            <MenuItem Header="Open in Folder" Click="MenuItemOpenFolder_Click"/>
+                            <MenuItem Header="Decode"/>
+                            <MenuItem Header="Speech to Text"/>
+                            <MenuItem Header="Delete" Click="MenuItemDelete_Click" />
                         </ContextMenu>
                     </ListView.ContextMenu>
                 </ListView>

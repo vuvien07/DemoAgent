@@ -24,7 +24,7 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Grid.Column="1" Background="#EAEDF0" MouseLeftButtonDown="Grid_MouseLeftButtonDown">
-            <Label Content="Sound Vip Protected Agent" Width="166" HorizontalAlignment="Left" Margin="0,-6,0,0" FontWeight="Bold" FontStyle="Italic" Foreground="#9D9FA1"/>
+            <Label Content="Conference Record Safer" Width="172"  HorizontalAlignment="Left" Margin="0,-6,0,0" FontWeight="Bold" FontStyle="Italic" Foreground="#9D9FA1"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
                 <Button  Width="37" Click="MinimizeButton_Click" Style="{DynamicResource CustomBtnClose}">
                     <fa:ImageAwesome  Icon="WindowMinimize" Width="12" Foreground="Black"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -39,7 +39,7 @@
             <Grid Background="#3F8AFA" >
                 <Image Source="Images/fauget1.png" Margin="1,0,65,3"/>
                 <Label Content="Record" FontStyle="Italic" FontWeight="Bold" Foreground="Black" Margin="47,4,20,10"/>
-                <Label Content="Guard" FontStyle="Oblique" FontWeight="Bold" Foreground="White" Margin="60,21,0,0"/>
+                <Label Content="Safer" FontStyle="Oblique" FontWeight="Bold" Foreground="White" Margin="60,21,0,0"/>
             </Grid>
             <Grid Width="70" Height="70" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave">
                 <fa:ImageAwesome  Icon="UserSecret" Width="25" Foreground="White"  HorizontalAlignment="Center" VerticalAlignment="Center"/>

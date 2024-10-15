@@ -5,6 +5,7 @@ using NAudio.Wave;
 using Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -216,23 +217,7 @@ namespace DemoAgent
             lvRecordings.ItemsSource = files;
         }
 
-        private void RemoveFile(object sender, MouseButtonEventArgs e)
-        {
-            var selectedFile = lvRecordings.SelectedValue as WavFile;
-            if (selectedFile != null)
-            {
-                try
-                {
-                    DialogResult dialogResult = System.Windows.Forms.MessageBox.Show($"Are you sure to delete this file at {selectedFile.Path}?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                    if (dialogResult == DialogResult.Yes)
-                    {
-                        recordService.RemoveWavFile(files, selectedFile.Path);
-                        LoadFiles();
-                    }
-                }
-                catch (Exception) { }
-            }
-        }
+      
 
         private void DecryptWavFile(object sender, MouseButtonEventArgs e)
         {
@@ -342,6 +327,54 @@ namespace DemoAgent
         private void OnAudioDataAvailable(float[] audioData)
         {
             Dispatcher.Invoke(() => UpdateWaveform(audioData));
+        }
+
+        private void MenuItemDelete_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedFile = lvRecordings.SelectedValue as WavFile;
+            if (selectedFile != null)
+            {
+                try
+                {
+                    DialogResult dialogResult = System.Windows.Forms.MessageBox.Show($"Are you sure to delete this file at {selectedFile.Path}?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (dialogResult == DialogResult.Yes)
+                    {
+                        recordService.RemoveWavFile(files, selectedFile.Path);
+                        LoadFiles();
+                    }
+                }
+                catch (Exception) { }
+            }
+        }
+
+        private void MenuItemOpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedFile = lvRecordings.SelectedValue as WavFile;
+            if (selectedFile != null)
+            {
+                try
+                {
+                    // Mở thư mục chứa file đã chọn
+                    string directoryPath = System.IO.Path.GetDirectoryName(selectedFile.Path);
+                    if (Directory.Exists(directoryPath))
+                    {
+                        var processStartInfo = new ProcessStartInfo
+                        {
+                            FileName = directoryPath,
+                            UseShellExecute = true
+                        };
+                        Process.Start(processStartInfo);
+                    }
+                    else
+                    {
+                        EventUtil.printNotice("Thư mục không tồn tại!", MessageUtil.ERROR);
+                    }
+                }
+                catch (Exception)
+                {
+                    EventUtil.printNotice("Đã xảy ra lỗi!", MessageUtil.ERROR);
+                }
+            }
         }
 
     }
