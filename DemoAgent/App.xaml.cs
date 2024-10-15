@@ -28,9 +28,18 @@ namespace DemoAgent
         public App()
         {
             string baseDirectory = Directory.GetCurrentDirectory();
-            string iconPath = @"D:\CMCProject1\DemoAgentV2\DemoAgent\fullscreen_arrow_icon_263604 (1).ico";
-            nIcon.Icon = new System.Drawing.Icon(iconPath);
-            nIcon.Visible = true;
+            DirectoryInfo directoryInfo = new DirectoryInfo(baseDirectory);
+            directoryInfo = directoryInfo.Parent?.Parent?.Parent;
+
+            if (directoryInfo != null)
+            {
+                var iconPath = Path.Combine(directoryInfo.FullName, "Image", "fauget1.ico");
+                if (File.Exists(iconPath))
+                {
+                    nIcon.Icon = new System.Drawing.Icon(iconPath);
+                }
+            }
+                nIcon.Visible = true;
             nIcon.Click -= nIcon_Click;
             nIcon.Click += nIcon_Click;
         }
