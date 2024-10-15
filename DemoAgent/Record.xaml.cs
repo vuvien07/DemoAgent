@@ -289,16 +289,5 @@ namespace DemoAgent
                 e.Handled = false; // Ngăn không cho sự kiện tiếp tục
             }
         }
-
-        private void IconImage_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            // Thay đổi icon giữa Microphone và Stop
-            var iconImage = sender as ImageAwesome;
-            if (iconImage.Icon == FontAwesomeIcon.Microphone)
-            {
-                StopRecord();
-            }
-        }
-
     }
 }
