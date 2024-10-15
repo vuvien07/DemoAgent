@@ -2,6 +2,7 @@
 using FontAwesome.WPF;
 using Models;
 using NAudio.Wave;
+using Python.Runtime;
 using Services;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using Util;
+using static Azure.Core.HttpHeader;
 
 namespace DemoAgent
 {
@@ -35,9 +37,11 @@ namespace DemoAgent
         private TimeSpan timeSpan = TimeSpan.Zero;
         private Account account;
         private string finalePath;
+        private string transPath;
         private List<WavFile> files;
         private bool isMeeting;
         private RecordService? recordService;
+        private App app = System.Windows.Application.Current as App;
        
         public Record(Account account, bool isMeeting)
         {
@@ -86,7 +90,10 @@ namespace DemoAgent
                 Directory.CreateDirectory(transcriptDirectory);
             }
             string wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.wav";
+            string transFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.txt";
             finalePath = System.IO.Path.Combine(recordDirectory, wavFile);
+            transPath = System.IO.Path.Combine(transcriptDirectory, transFile);
+            recordService.TranscriptionPath = System.IO.Path.Combine(transcriptDirectory, transFile);
             StartMonitoring();
             recordService.StartRecording(0, finalePath);
             UpdateUIForRecording();
@@ -187,6 +194,11 @@ namespace DemoAgent
                     DemoAgentContext.INSTANCE.Meetings.Update(meeting);
                     DemoAgentContext.INSTANCE.SaveChanges();
                 }
+            }
+            string transcript = performRecognizeText($@"{finalePath}");
+            using (StreamWriter sw = new StreamWriter(transPath))
+            {
+                sw.WriteLine(transcript);
             }
             LoadFiles();
         }
@@ -294,5 +306,72 @@ namespace DemoAgent
                 e.Handled = false; // Ngăn không cho sự kiện tiếp tục
             }
         }
+
+        private string performRecognizeText(string wavPath)
+        {
+            string result = "";
+            using (PyModule pyModule = Py.CreateScope())
+            {
+                // Định nghĩa biến trong phạm vi
+                pyModule.Set("audio_bytes", wavPath);
+                pyModule.Set("model", app._model);
+                pyModule.Set("processor", app._processor);
+                pyModule.Set("device", app._device);
+
+                // Chạy mã Python
+                pyModule.Exec(@"
+import io
+import soundfile as sf
+import librosa
+import torch
+import numpy as np
+
+
+def audio_transcribe(wavPath, model, processor, device):
+    try:
+        # Read audio from bytes
+        audio_input, sample_rate = sf.read(wavPath)
+
+        # Ensure that the audio has the correct sample rate
+        if sample_rate != 16000:
+            audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
+
+        # Preprocess input data
+        input_values = processor(audio_input, return_tensors='pt', padding='longest').input_values
+        input_values = input_values.to(device)
+
+        # Predict with the model
+        with torch.no_grad():
+            logits = model(input_values).logits
+
+        predicted_ids = torch.argmax(logits, dim=-1)
+
+        # Decode to text
+        transcription = processor.decode(predicted_ids[0])
+
+        return transcription
+    
+    except ValueError as ve:
+        print(f'ValueError: {ve} - Ensure the audio bytes are valid and compatible.')
+    except RuntimeError as re:
+        print(f'RuntimeError: {re} - Check the model and processor compatibility with the input.')
+    except Exception as e:
+        print(f'An error occurred during audio transcription: {e} - Audio input type: {type(audio_input)}')
+                            ");
+                PyObject[] pyObject = new PyObject[] {
+                                pyModule.GetAttr("audio_bytes"),
+                                pyModule.GetAttr("model"),
+                                pyModule.GetAttr("processor"),
+                                pyModule.GetAttr("device")
+                            };
+                var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
+                if (transcription != null && transcription is PyObject)
+                {
+                    result = transcription.As<string>();
+                }
+            }
+            return result;
+        }
+
     }
 }
