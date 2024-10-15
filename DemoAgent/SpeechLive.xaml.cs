@@ -38,27 +38,19 @@ namespace DemoAgent
         private System.Timers.Timer deviceTimer;
         private int _previousDeviceCount;
         private WaveInEvent waveIn;
-        private static dynamic? _processor;
-        private static dynamic? _model;
-        private static dynamic? _device;
-        private static ConcurrentQueue<byte[]> audioQueue = new ConcurrentQueue<byte[]>();
         private static List<byte> audioBuffer = new List<byte>();
 
         //Quy dinh 1 giay am thanh co do dai 32000 bit
         private int bufferSize = 16000 * 2 * 1;
         private Task _transcriptionTask;
         private Task _recognitionTask;
+        private App app = System.Windows.Application.Current as App;
         //private ButterworthHighPassFilterService _butterworthHighPassFilter;
         //private FilterSoundService _filterSound;
-        public CancellationTokenSource _cancellationTokenSource;
 
         public SpeechLive()
         {
             InitializeComponent();
-            Dispatcher.Invoke(() =>
-            {
-                InitializePython();
-            });
             StartMonitoringDevices();
         }
 
@@ -120,53 +112,44 @@ namespace DemoAgent
             }
             else
             {
-                _cancellationTokenSource = new CancellationTokenSource();
                 _timeSpan = TimeSpan.Zero;
                 TimerLabel.Content = _timeSpan.ToString(@"hh\:mm\:ss");
                 _timer.Start();
                 iconImage.Icon = FontAwesomeIcon.Square;
                 _isRecording = true;
-                _recognitionTask = StartRecognition(_cancellationTokenSource.Token);
+                StartRecognition();
             }
         }
 
-        private async Task StartRecognition(CancellationToken cancellationToken)
+        private void StartRecognition()
         {
-            using (Py.GIL())
+            var waveFormat = new WaveFormat(16000, 16, 1); // 16kHz, 16-bit, mono
+            waveIn = new WaveInEvent
             {
-                var waveFormat = new WaveFormat(16000, 16, 1); // 16kHz, 16-bit, mono
-                waveIn = new WaveInEvent
-                {
-                    WaveFormat = waveFormat,
-                    BufferMilliseconds = 1000 // 1 giây mỗi buffer
-                };
+                WaveFormat = waveFormat,
+                BufferMilliseconds = 1000 // 1 giây mỗi buffer
+            };
 
-                waveIn.DataAvailable += WaveIn_DataAvailable;
-                waveIn.RecordingStopped += WaveIn_RecordingStopped;
+            waveIn.DataAvailable += WaveIn_DataAvailable;
+            waveIn.RecordingStopped += WaveIn_RecordingStopped;
 
-                //_filterSound = new FilterSoundService(3000, waveIn.WaveFormat.SampleRate);
-                //_butterworthHighPassFilter = new ButterworthHighPassFilterService(100, waveIn.WaveFormat.SampleRate);
+            //_filterSound = new FilterSoundService(3000, waveIn.WaveFormat.SampleRate);
+            //_butterworthHighPassFilter = new ButterworthHighPassFilterService(100, waveIn.WaveFormat.SampleRate);
 
-                waveIn.StartRecording();
-                _transcriptionTask = ProcessTranscriptionAsync(cancellationToken);
-            }
+            waveIn.StartRecording();
         }
 
         private void WaveIn_DataAvailable(object sender, WaveInEventArgs e)
         {
-            lock (audioBuffer)
+            audioBuffer.AddRange(e.Buffer[0..e.BytesRecorded]);
+            while (audioBuffer.Count >= bufferSize)
             {
-                audioBuffer.AddRange(e.Buffer[0..e.BytesRecorded]);
-                while (audioBuffer.Count >= bufferSize)
-                {
-                    byte[] chunk;
-                    chunk = audioBuffer.GetRange(0, bufferSize).ToArray();
-                    //ProcessBitAudio(chunk, e);
-                    audioBuffer.RemoveRange(0, bufferSize);
+                byte[] chunk;
+                chunk = audioBuffer.GetRange(0, bufferSize).ToArray();
+                //ProcessBitAudio(chunk, e);
+                audioBuffer.RemoveRange(0, bufferSize);
 
-                    // Thêm chunk vào hàng đợi để xử lý sau
-                    audioQueue.Enqueue(chunk);
-                }
+                // Thêm chunk vào hàng đợi để xử lý sau
             }
         }
 
@@ -193,59 +176,18 @@ namespace DemoAgent
 
         private void WaveIn_RecordingStopped(object sender, StoppedEventArgs e)
         {
-            lock (audioBuffer)
+            if (audioBuffer.Count > 0)
             {
-                if (audioBuffer.Count > 0)
+                byte[] remaining;
+                lock (audioBuffer)
                 {
-                    byte[] remaining;
-                    lock (audioBuffer)
-                    {
-                        remaining = audioBuffer.ToArray();
-                        audioBuffer.Clear();
-                    }
-                    audioQueue.Enqueue(remaining);
-                }
-
-            }
-        }
-
-        private async Task ProcessTranscriptionAsync(CancellationToken cancellationToken)
-        {
-            while ((_isRecording || !audioQueue.IsEmpty) && !cancellationToken.IsCancellationRequested)
-            {
-                // Kiểm tra hàng đợi
-                if (audioQueue.TryDequeue(out byte[] audioBytes))
-                {
-                    try
-                    {
-
-                        await Task.Run(() =>
-                        {
-                            string result = performRecognizeText(audioBytes);
-                            Dispatcher.Invoke(() =>
-                            {
-                                ResultTextBox.Text += $" {result}";
-                            });
-                        }, cancellationToken);
-                    }
-                    catch (PythonException pyEx)
-                    {
-                        Console.WriteLine($"Python exception: {pyEx.Message}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error during transcription: {ex.Message}");
-                    }
-                }
-                else
-                {
-                    await Task.Delay(50);
+                    remaining = audioBuffer.ToArray();
+                    audioBuffer.Clear();
                 }
             }
         }
 
-
-        private async void StopRecognition()
+        private void StopRecognition()
         {
             if (waveIn != null)
             {
@@ -253,7 +195,6 @@ namespace DemoAgent
                 waveIn.Dispose();
                 waveIn = null;
             }
-            await Task.WhenAll(_recognitionTask, _transcriptionTask);
         }
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -269,28 +210,6 @@ namespace DemoAgent
         /*
          * Ham khoi tao moi truong python
          */
-        private void InitializePython()
-        {
-            if (!PythonEngine.IsInitialized)
-                PythonEngine.Initialize();
-            try
-            {
-                using (Py.GIL())
-                {
-                    dynamic speechRecogitionScript = Py.Import("SpeechRecognition");
-                    if (_model is null)
-                        _model = speechRecogitionScript.load_model();
-                    if (_processor is null)
-                        _processor = speechRecogitionScript.load_processor();
-                    if (_device is null)
-                        _device = speechRecogitionScript.get_device();
-                }
-            }
-            catch (Exception ex)
-            {
-            }
-        }
-
         private string performRecognizeText(byte[] audioBytes)
         {
             string result = "";
@@ -298,9 +217,9 @@ namespace DemoAgent
             {
                 // Định nghĩa biến trong phạm vi
                 pyModule.Set("audio_bytes", audioBytes);
-                pyModule.Set("model", _model);
-                pyModule.Set("processor", _processor);
-                pyModule.Set("device", _device);
+                pyModule.Set("model", app._model);
+                pyModule.Set("processor", app._processor);
+                pyModule.Set("device", app._device);
 
                 // Chạy mã Python
                 pyModule.Exec(@"
