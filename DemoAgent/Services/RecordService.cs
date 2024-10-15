@@ -31,7 +31,7 @@ namespace Services
         private string finalPath;
         private string _recordMode;
         public int _count = 0;
-
+        public event Action<float[]> OnAudioDataAvailable;
         public string FinalePath { get => finalPath; set => finalPath = value; }
         public string RecordMode { get => _recordMode; set => _recordMode = value; }
 
@@ -65,7 +65,11 @@ namespace Services
             fileWriter = new WaveFileWriter(outputFilePath, waveInEvent.WaveFormat);
             waveInEvent.DataAvailable += (s, e) =>
             {
+                float[] audioData = new float[e.BytesRecorded / 2];
+
                 fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+                OnAudioDataAvailable?.Invoke(audioData);
+
                 fileWriter.Flush();
             };
             waveInEvent.StartRecording();

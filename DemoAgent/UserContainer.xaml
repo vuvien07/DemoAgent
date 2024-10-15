@@ -112,24 +112,24 @@
                 </Grid.Background>
                 <!-- Menu StackPanel, ẩn ban đầu -->
                 <StackPanel Name="MenuPanel" Background="#52A0FF"  Panel.ZIndex="4" Margin="720,411,31,0" Visibility="Collapsed">
-                    <Button Height="40"  Margin="0,5,0,0" Name="btProfileUser" Style="{DynamicResource UserContainerMenuBtn}" Click="btProfileUser_Click">
+                    <ToggleButton Height="40"  Margin="0,5,0,0" Name="btProfileUser" Style="{DynamicResource UserContainerMenuTogBtn}" Click="btProfileUser_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <fa:ImageAwesome Icon="User" Height="20" Foreground="White" VerticalAlignment="Center" Margin="2,0,10,0"/>
                             <TextBlock Text="Profile" VerticalAlignment="Center" Foreground="White"/>
                         </StackPanel>
-                    </Button>
-                    <Button Height="40" Margin="0" Name="btInformationApp" Style="{DynamicResource UserContainerMenuBtn}" Click="btInformationApp_Click">
+                    </ToggleButton>
+                    <ToggleButton Height="40" Margin="0" Name="btInformationApp" Style="{DynamicResource UserContainerMenuTogBtn}" Click="btInformationApp_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <fa:ImageAwesome Icon="InfoCircle" Height="20" Foreground="White" VerticalAlignment="Center" Margin="2,0,10,0"/>
                             <TextBlock Text="Information" VerticalAlignment="Center" Foreground="White"/>
                         </StackPanel>
-                    </Button>
-                    <Button Height="40" Margin="0" Name="btContactApp" Style="{DynamicResource UserContainerMenuBtn}" Click="btContactApp_Click">
+                    </ToggleButton>
+                    <ToggleButton Height="40" Margin="0" Name="btContactApp" Style="{DynamicResource UserContainerMenuTogBtn}" Click="btContactApp_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <fa:ImageAwesome Icon="FacebookSquare" Height="20" Foreground="Blue" VerticalAlignment="Center" Margin="2,0,10,0"/>
                             <TextBlock Text="Contact us..." VerticalAlignment="Center" Foreground="White"/>
                         </StackPanel>
-                    </Button>
+                    </ToggleButton>
                 </StackPanel>
 
                 <StackPanel Panel.ZIndex="4" Background="#367ADE" Margin="0,22,715,324" Visibility="Collapsed"  x:Name="InfoStackPanel">

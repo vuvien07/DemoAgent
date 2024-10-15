@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <SplashScreen Include="Images\img1.png" />
+    <Resource Include="Images\img1.png" />
   </ItemGroup>
 
   <ItemGroup>

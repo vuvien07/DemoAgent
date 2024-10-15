@@ -37,14 +37,14 @@ namespace DemoAgent
         private string finalePath;
         private List<WavFile> files;
         private bool isMeeting;
-        private readonly RecordService? recordService;
+        private RecordService? recordService;
        
         public Record(Account account, bool isMeeting)
         {
             InitializeComponent();
             this.account = account;
             this.isMeeting = isMeeting;
-            if(recordService == null )
+            if (recordService == null )
             {
                 recordService = RecordService.Instance;
                 recordService.InitializeService(account);
@@ -54,6 +54,8 @@ namespace DemoAgent
                 timeSpan = TimeSpan.Zero;
                 recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             }
+            recordService.OnAudioDataAvailable += OnAudioDataAvailable;
+
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -140,7 +142,7 @@ namespace DemoAgent
                     {
                         timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
                         recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                        TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                        TimerLabel.Content = $"{timeSpan.ToString(@"hh\:mm\:ss")}";
                     }
                     else
                     {
@@ -152,7 +154,7 @@ namespace DemoAgent
                     {
                         timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
                         recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                        TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                        TimerLabel.Content = $"{timeSpan.ToString(@"hh\:mm\:ss")}";
                     }
                     else
                     {
@@ -169,7 +171,7 @@ namespace DemoAgent
             StopMonitoring();
             recordService.StopRecording(finalePath, account);
             recordService.StopWatching();
-            TimerLabel.Content = $"Record time:";
+            TimerLabel.Content = $"00:00:00";
             timeSpan = TimeSpan.Zero;
             recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             recordService.RecordMode = MessageUtil.RECORD_MANUAL;
@@ -195,7 +197,7 @@ namespace DemoAgent
                 timeSpan = (TimeSpan)recordService.GetTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"));
                 StartMonitoring();
                 updateIcon(FontAwesomeIcon.Square);
-                TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                TimerLabel.Content = $"{timeSpan.ToString(@"hh\:mm\:ss")}";
             }
             else
             {
@@ -204,10 +206,7 @@ namespace DemoAgent
 
         }
 
-        private List<WavFile> GetFiles()
-        {
-            return files;
-        }
+        
 
         private void LoadFiles()
         {
@@ -298,6 +297,54 @@ namespace DemoAgent
             {
                 StopRecord();
             }
+        }
+        private void UpdateWaveform(float[] audioData)
+        {
+            // Xóa canvas cũ
+            WaveformCanvas.Children.Clear();
+
+            // Tạo Polyline để vẽ đường sóng âm
+            var polyline = new Polyline
+            {
+                Stroke = new LinearGradientBrush(
+                    Colors.LightBlue, Colors.Blue, 90), // Tạo hiệu ứng chuyển màu
+                StrokeThickness = 4 // Độ dày đường kẻ
+            };
+
+            double centerY = WaveformCanvas.ActualHeight / 2;
+            double width = WaveformCanvas.ActualWidth;
+            double pointSpacing = width / audioData.Length;
+
+            for (int i = 0; i < audioData.Length; i++)
+            {
+                double x = i * pointSpacing;
+                double y = centerY - (audioData[i] * centerY);
+
+                polyline.Points.Add(new System.Windows.Point(x, y));
+            }
+
+            WaveformCanvas.Children.Add(polyline);
+
+            AddWaveformBackground(WaveformCanvas);
+        }
+
+        private void AddWaveformBackground(Canvas canvas)
+        {
+            var background = new System.Windows.Shapes.Rectangle
+            {
+                Width = canvas.ActualWidth,
+                Height = canvas.ActualHeight,
+                Fill = new LinearGradientBrush(
+                    Colors.White, Colors.LightGray, 90) // Hiệu ứng gradient cho nền
+            };
+
+            canvas.Children.Insert(0, background); // Đặt nền phía sau đường sóng âm
+        }
+
+
+        private void OnAudioDataAvailable(float[] audioData)
+        {
+            Dispatcher.Invoke(() => UpdateWaveform(audioData));
         }
 
     }
