@@ -21,7 +21,6 @@ namespace DemoAgent
     /// </summary>
     public partial class App : System.Windows.Application
     {
-        public ServiceProvider? serviceProvider;
         System.Windows.Forms.NotifyIcon nIcon = new System.Windows.Forms.NotifyIcon();
         public Window currWindow;
         public Account? account;
@@ -32,6 +31,7 @@ namespace DemoAgent
 
         public App()
         {
+            InitializeComponent();
             InitializePython();
             string baseDirectory = Directory.GetCurrentDirectory();
             DirectoryInfo directoryInfo = new DirectoryInfo(baseDirectory);
@@ -115,7 +115,7 @@ namespace DemoAgent
             {
                 using (Py.GIL())
                 {
-                    dynamic speechRecogitionScript = Py.Import("speechtext");
+                    dynamic speechRecogitionScript = Py.Import("SpeechRecognition");
                     if (_model is null)
                         _model = speechRecogitionScript.load_model();
                     if (_processor is null)

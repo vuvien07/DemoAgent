@@ -54,8 +54,8 @@
                         <GridViewColumn Header="id" DisplayMemberBinding="{Binding Id}"/>
                         <GridViewColumn Header="name"  DisplayMemberBinding="{Binding Name}"  />
                         <GridViewColumn Header="description" Width="200"  DisplayMemberBinding="{Binding Description}"/>
-                        <GridViewColumn Header="Start"  DisplayMemberBinding="{Binding Start}"/>
-                        <GridViewColumn Header="End" DisplayMemberBinding="{Binding End}"/>
+                        <GridViewColumn Header="Start"  DisplayMemberBinding="{Binding TimeStart}"/>
+                        <GridViewColumn Header="End" DisplayMemberBinding="{Binding TimeEnd}"/>
                         <GridViewColumn Header="Creator"  DisplayMemberBinding="{Binding Creator}"/>
                         <GridViewColumn Header="Status"  DisplayMemberBinding="{Binding Status}"/>
                     </GridView>

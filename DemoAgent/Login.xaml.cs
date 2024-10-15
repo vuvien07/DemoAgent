@@ -107,11 +107,6 @@ namespace DemoAgent
             }
         }
 
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            this.Hide();
-        }
-
         private Account? GetAccount()
         {
             DriveInfo[] allDrives = DriveInfo.GetDrives();

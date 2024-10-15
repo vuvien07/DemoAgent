@@ -30,10 +30,12 @@ namespace Services
         private Account account;
         private string finalPath;
         private string _recordMode;
-        public int _count = 0;
+        private string transcriptionPath;
 
         public string FinalePath { get => finalPath; set => finalPath = value; }
         public string RecordMode { get => _recordMode; set => _recordMode = value; }
+
+        public string TranscriptionPath { get => transcriptionPath; set => transcriptionPath = value; }
 
         public void InitializeService(Account account)
         {
@@ -105,7 +107,6 @@ namespace Services
                         DemoAgentContext.INSTANCE.SaveChanges();
                     }
                     EventUtil.printNotice($"Save record to path {finalePath} successfully!", MessageUtil.SUCCESS);
-                    _count = 0;
                 }catch(Exception) {
                     EventUtil.printNotice($"An error occured while save recording file!", MessageUtil.ERROR);
                 }

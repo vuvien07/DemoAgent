@@ -37,14 +37,14 @@ namespace DemoAgent
         private string finalePath;
         private List<WavFile> files;
         private bool isMeeting;
-        private readonly RecordService? recordService;
+        private RecordService? recordService;
        
         public Record(Account account, bool isMeeting)
         {
             InitializeComponent();
             this.account = account;
             this.isMeeting = isMeeting;
-            if(recordService == null )
+            if(recordService == null)
             {
                 recordService = RecordService.Instance;
                 recordService.InitializeService(account);
@@ -75,13 +75,18 @@ namespace DemoAgent
                 return;
             }
             updateIcon(FontAwesomeIcon.Square);
-            string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-            if (!Directory.Exists(directory))
+            string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
+            string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
+            if (!Directory.Exists(recordDirectory))
             {
-                Directory.CreateDirectory(directory);
+                Directory.CreateDirectory(recordDirectory);
+            }
+            if(!Directory.Exists(transcriptDirectory))
+            {
+                Directory.CreateDirectory(transcriptDirectory);
             }
             string wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.wav";
-            finalePath = System.IO.Path.Combine(directory, wavFile);
+            finalePath = System.IO.Path.Combine(recordDirectory, wavFile);
             StartMonitoring();
             recordService.StartRecording(0, finalePath);
             UpdateUIForRecording();

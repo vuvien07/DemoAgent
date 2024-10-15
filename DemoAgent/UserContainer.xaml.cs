@@ -63,45 +63,36 @@ namespace DemoAgent
 
         private void btLive_Click(object sender, RoutedEventArgs e)
         {
-            EnableButton(lsButton);
             ContainerUser.Child = new SpeechLive();
             UncheckOthers(btLive);
-            DisableButton((ToggleButton)sender);
         }
 
         private void btRecord_Click(object sender, RoutedEventArgs e)
         {
-            EnableButton(lsButton);
             ContainerUser.Child = new Record(account, false);
             UncheckOthers(btRecord);
-            DisableButton((ToggleButton)sender);
         }
 
         private void btCryto_Click(object sender, RoutedEventArgs e)
         {
-            EnableButton(lsButton);
             var userCrypto = new UserCrypto(account);
             ContainerUser.Child = userCrypto;
             UncheckOthers(btCryto);
-            DisableButton((ToggleButton)sender);
         }
 
         private void btMeeting_Click(object sender, RoutedEventArgs e)
         {
-            EnableButton(lsButton);
             var meeting = new UserMeeting(account);
             ContainerUser.Child = meeting;
             UncheckOthers(btMeeting);
-            DisableButton((ToggleButton)sender);
         }
 
         public void RaiseEvent()
         {
-            EnableButton(lsButton);
             var userContainer = new UserContainer(account);
             userContainer.ContainerUser.Child = new Record(account, true);
             recordService.RecordMode = MessageUtil.RECORD_AUTOMATIC;
-            DisableButton(userContainer.btRecord);
+            UncheckOthers(userContainer.btRecord);
             userContainer.Show();
             Record record = userContainer.ContainerUser.Child as Record;
             Dispatcher.BeginInvoke(new Action(() =>
