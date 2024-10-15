@@ -46,7 +46,7 @@ namespace DemoAgent
             }
             if(lsButton == null)
             {
-                lsButton = new List<ToggleButton>() { btRecord, btMeeting, btLive, btCryto};
+                lsButton = new List<ToggleButton>() { btRecord, btMeeting, btLive, btCryto, btProfileUser , btInformationApp , btContactApp };
             }
             lbAccount.Content = account.Username;
             lbId.Content = account.Id;
@@ -65,7 +65,6 @@ namespace DemoAgent
         {
             EnableButton(lsButton);
             ContainerUser.Child = new SpeechLive();
-            UncheckOthers(btLive);
             DisableButton((ToggleButton)sender);
         }
 
@@ -73,7 +72,6 @@ namespace DemoAgent
         {
             EnableButton(lsButton);
             ContainerUser.Child = new Record(account, false);
-            UncheckOthers(btRecord);
             DisableButton((ToggleButton)sender);
         }
 
@@ -82,7 +80,6 @@ namespace DemoAgent
             EnableButton(lsButton);
             var userCrypto = new UserCrypto(account);
             ContainerUser.Child = userCrypto;
-            UncheckOthers(btCryto);
             DisableButton((ToggleButton)sender);
         }
 
@@ -91,7 +88,6 @@ namespace DemoAgent
             EnableButton(lsButton);
             var meeting = new UserMeeting(account);
             ContainerUser.Child = meeting;
-            UncheckOthers(btMeeting);
             DisableButton((ToggleButton)sender);
         }
 
@@ -118,6 +114,13 @@ namespace DemoAgent
             if (button.IsEnabled)
             {
                 button.IsEnabled = false;
+            }
+            foreach (var child in spMenu.Children)
+            {
+                if (child is ToggleButton toggleButton && toggleButton != button)
+                {
+                    toggleButton.IsChecked = false;
+                }
             }
         }
 
@@ -179,41 +182,36 @@ namespace DemoAgent
 
         private void btInformationApp_Click(object sender, RoutedEventArgs e)
         {
+            EnableButton(lsButton);
             ContainerUser.Child = null;
             MenuPanel.Visibility = Visibility.Collapsed;
             BellOn.Visibility = Visibility.Collapsed;
             bellOff.Visibility = Visibility.Visible;
-            UncheckOthers(null);
+            DisableButton((ToggleButton)sender);
+
         }
 
         private void btProfileUser_Click(object sender, RoutedEventArgs e)
         {
+            EnableButton(lsButton);
             ContainerUser.Child = null;
             MenuPanel.Visibility = Visibility.Collapsed;
             BellOn.Visibility = Visibility.Collapsed;
             bellOff.Visibility = Visibility.Visible;
-            UncheckOthers(null);
+            DisableButton((ToggleButton)sender);
 
         }
 
         private void btContactApp_Click(object sender, RoutedEventArgs e)
         {
+            EnableButton(lsButton);
             ContainerUser.Child = null;
             MenuPanel.Visibility = Visibility.Collapsed;
             BellOn.Visibility = Visibility.Collapsed;
             bellOff.Visibility = Visibility.Visible;
-            UncheckOthers(null);
+            DisableButton((ToggleButton)sender);
 
         }
-        private void UncheckOthers(ToggleButton selectedButton)
-        {
-            foreach (var child in spMenu.Children)
-            {
-                if (child is ToggleButton toggleButton && toggleButton != selectedButton)
-                {
-                    toggleButton.IsChecked = false;
-                }
-            }
-        }
+
     }
 }
