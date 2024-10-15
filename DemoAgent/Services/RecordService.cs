@@ -91,9 +91,8 @@ namespace Services
                         {
                             Directory.CreateDirectory(directoryPath);
                         }
-                        string encryptedFileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.cnp";
-                        string encryptedFilePath = Path.Combine(directoryPath, encryptedFileName);
-                        string fileName = Path.GetFileName(finalePath);
+                        string encryptedFileName = $"{Path.GetFileName(finalePath)}.cnp";
+                        string encryptedFilePath = Path.Combine(directoryPath, encryptedFileName);                        
                         UtilHelper.EncryptFile(finalePath, encryptedFilePath, account.PublicKey);
                         File.Delete(finalePath);
                     }
@@ -104,7 +103,7 @@ namespace Services
                         DemoAgentContext.INSTANCE.Meetings.Update(meeting);
                         DemoAgentContext.INSTANCE.SaveChanges();
                     }
-                    EventUtil.printNotice($"Save record to path {finalePath} successfully!", MessageUtil.SUCCESS);
+                    EventUtil.printNotice($"Save record successfully!", MessageUtil.SUCCESS);
                     _count = 0;
                 }catch(Exception) {
                     EventUtil.printNotice($"An error occured while save recording file!", MessageUtil.ERROR);

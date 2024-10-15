@@ -1,6 +1,8 @@
 ﻿using HotelManagement.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Models;
+using NAudio.CoreAudioApi;
+using Python.Runtime;
 using Services;
 using System.ComponentModel;
 using System.Configuration;
@@ -21,12 +23,16 @@ namespace DemoAgent
     {
         public ServiceProvider? serviceProvider;
         System.Windows.Forms.NotifyIcon nIcon = new System.Windows.Forms.NotifyIcon();
-        //private System.Windows.Forms.ContextMenuStrip menuStrip = new System.Windows.Forms.ContextMenuStrip();
         public Window currWindow;
         public Account? account;
+        public dynamic? _processor;
+        public dynamic? _model;
+        public dynamic? _device;
+
 
         public App()
         {
+            InitializePython();
             string baseDirectory = Directory.GetCurrentDirectory();
             DirectoryInfo directoryInfo = new DirectoryInfo(baseDirectory);
             directoryInfo = directoryInfo.Parent?.Parent?.Parent;
@@ -39,7 +45,7 @@ namespace DemoAgent
                     nIcon.Icon = new System.Drawing.Icon(iconPath);
                 }
             }
-                nIcon.Visible = true;
+            nIcon.Visible = true;
             nIcon.Click -= nIcon_Click;
             nIcon.Click += nIcon_Click;
         }
@@ -80,18 +86,7 @@ namespace DemoAgent
                             recordService.StopRecording(recordService.FinalePath, (System.Windows.Application.Current as App)?.account);
                         }
                     }
-                    Window userContainer = System.Windows.Application.Current.Windows.OfType<UserContainer>().FirstOrDefault();
-                    if (userContainer != null)
-                    {
-                        var s = (Viewbox)userContainer.FindName("ContainerUser");
-                        if (s != null && s.Child is SpeechLive speechLive)
-                        {
-                            CancellationTokenSource tokenSource = speechLive._cancellationTokenSource;
-                            tokenSource?.Cancel();
-                            tokenSource?.Dispose();
-                        }
-                    }
-
+                    PythonEngine.Shutdown();
                     app.Shutdown();
                 }
             }
@@ -109,6 +104,30 @@ namespace DemoAgent
         {
             window.Closing -= Closing_Window;
             window.Closing += Closing_Window;
+        }
+
+        private void InitializePython()
+        {
+            //Environment.SetEnvironmentVariable("PYTHONNET_PYDLL", @"C:\Users\Admin\AppData\Local\Programs\Python\Python312\python312.dll");
+            if (!PythonEngine.IsInitialized)
+                PythonEngine.Initialize();
+            try
+            {
+                using (Py.GIL())
+                {
+                    dynamic speechRecogitionScript = Py.Import("SpeechRecognition");
+                    if (_model is null)
+                        _model = speechRecogitionScript.load_model();
+                    if (_processor is null)
+                        _processor = speechRecogitionScript.load_processor();
+                    if (_device is null)
+                        _device = speechRecogitionScript.get_device();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
     }
 

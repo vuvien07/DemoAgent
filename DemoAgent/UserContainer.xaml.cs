@@ -21,6 +21,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Util;
 
 namespace DemoAgent
@@ -64,6 +65,7 @@ namespace DemoAgent
         {
             EnableButton(lsButton);
             ContainerUser.Child = new SpeechLive();
+            UncheckOthers(btLive);
             DisableButton((ToggleButton)sender);
         }
 
@@ -71,6 +73,7 @@ namespace DemoAgent
         {
             EnableButton(lsButton);
             ContainerUser.Child = new Record(account, false);
+            UncheckOthers(btRecord);
             DisableButton((ToggleButton)sender);
         }
 
@@ -79,6 +82,7 @@ namespace DemoAgent
             EnableButton(lsButton);
             var userCrypto = new UserCrypto(account);
             ContainerUser.Child = userCrypto;
+            UncheckOthers(btCryto);
             DisableButton((ToggleButton)sender);
         }
 
@@ -87,6 +91,7 @@ namespace DemoAgent
             EnableButton(lsButton);
             var meeting = new UserMeeting(account);
             ContainerUser.Child = meeting;
+            UncheckOthers(btMeeting);
             DisableButton((ToggleButton)sender);
         }
 
@@ -98,6 +103,12 @@ namespace DemoAgent
             recordService.RecordMode = MessageUtil.RECORD_AUTOMATIC;
             DisableButton(userContainer.btRecord);
             userContainer.Show();
+            Record record = userContainer.ContainerUser.Child as Record;
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                RoutedEventArgs args = new RoutedEventArgs(Button.ClickEvent);
+                record.RecordButton.RaiseEvent(args);
+            }), DispatcherPriority.ApplicationIdle);
             (Application.Current as App).SetCurrWindow(userContainer);
             (Application.Current as App).SubscribeClosingEvent(userContainer);
         }

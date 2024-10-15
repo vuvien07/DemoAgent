@@ -16,15 +16,6 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Grid.Column="0">
-            <Button  Margin="0,10,150,10" Height="33" Width="130" Background="#52A0FF">
-                <Button.Effect>
-                    <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="2" Direction="320"/>
-                </Button.Effect>
-                <StackPanel Orientation="Horizontal">
-                    <fa:ImageAwesome Icon="Folder" Height="20" Width="15" Foreground="LightYellow" Margin="0,0,10,0"/>
-                    <TextBlock Text="Open Folder" VerticalAlignment="Center" FontWeight="Bold" Foreground="White"/>
-                </StackPanel>
-            </Button>
             <Label Content="Recently Recorded" FontSize="20" FontWeight="Bold"/>
             <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Height="365">
                 <ListView x:Name="lvRecordings" Width="290" BorderThickness="0" Background="Transparent"  MouseWheel="lvRecordings_MouseWheel" >
@@ -40,8 +31,9 @@
                     </ListView.ItemTemplate>
                     <ListView.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Play"/>
-                            <MenuItem Header="Delete" />
+                            <MenuItem Header="Show in Folder" />
+                            <MenuItem Header="Decrypt File" />
+                            <MenuItem Header="Delete File" />
                         </ContextMenu>
                     </ListView.ContextMenu>
                 </ListView>

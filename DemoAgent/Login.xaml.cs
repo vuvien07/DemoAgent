@@ -33,8 +33,6 @@ namespace DemoAgent
         private ManagementEventWatcher? deleteWatcher;
 
 
-        public ManagementEventWatcher RemoveWatcher => deleteWatcher;
-
         public ManagementEventWatcher InsertWatcher { get => insertWatcher; set => insertWatcher = value; }
 
 
@@ -44,6 +42,7 @@ namespace DemoAgent
             EventUtil.PrintNotice -= MessageBoxUtil.PrintMessageBox;
             EventUtil.PrintNotice += MessageBoxUtil.PrintMessageBox;
             StartUsbWatcher();
+            AutoLogin();
         }
 
         private void DeviceInsertedEvent(object sender, EventArrivedEventArgs e)
@@ -54,6 +53,7 @@ namespace DemoAgent
                 {
                     isLoggingIn = true;
                     InitializeTimer();
+                    
                 }
             });
         }
@@ -77,7 +77,7 @@ namespace DemoAgent
             else
             {
                 dispatcherTimer.Stop();
-                AutoLogin();
+                //AutoLogin();
             }
         }
 
@@ -114,42 +114,53 @@ namespace DemoAgent
 
         private Account? GetAccount()
         {
-            DriveInfo[] allDrives = DriveInfo.GetDrives();
-
-            foreach (DriveInfo drive in allDrives)
+            string fileName = "Account.txt";
+            string filePath = System.IO.Path.Combine("D:", fileName);
+            string content = File.ReadAllText(filePath);
+            var account = AccountDBContext.Instance.getAccountByPrivateKey(content);
+            if (account != null)
             {
-                if (drive.DriveType == DriveType.Removable && drive.IsReady)
-                {
-                    string fileName = "Account.txt";
-                    string filePath = System.IO.Path.Combine(drive.Name, fileName);
-
-                    if (File.Exists(filePath))
-                    {
-                        try
-                        {
-                            string content = File.ReadAllText(filePath);
-                            var account = AccountDBContext.Instance.getAccountByPrivateKey(content);
-                            if (account != null)
-                            {
-                                return account;
-                            }
-                            else
-                            {
-                                EventUtil.printNotice("Account not found!", MessageUtil.ERROR);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            EventUtil.printNotice("An error occured!", MessageUtil.ERROR);
-                        }
-
-                    }
-                    else
-                    {
-                        EventUtil.printNotice("No valid USB drive with Account.txt found!", MessageUtil.ERROR);
-                    }
-                }
+                return account;
             }
+            else
+            {
+                EventUtil.printNotice("Account not found!", MessageUtil.ERROR);
+            }
+
+            //foreach (DriveInfo drive in allDrives)
+            //{
+            //    if (drive.DriveType == DriveType.Removable && drive.IsReady)
+            //    {
+            //        string fileName = "Account.txt";
+            //        string filePath = System.IO.Path.Combine(drive.Name, fileName);
+
+            //        if (File.Exists(filePath))
+            //        {
+            //            try
+            //            {
+            //                string content = File.ReadAllText(filePath);
+            //                var account = AccountDBContext.Instance.getAccountByPrivateKey(content);
+            //                if (account != null)
+            //                {
+            //                    return account;
+            //                }
+            //                else
+            //                {
+            //                    EventUtil.printNotice("Account not found!", MessageUtil.ERROR);
+            //                }
+            //            }
+            //            catch (Exception ex)
+            //            {
+            //                EventUtil.printNotice("An error occured!", MessageUtil.ERROR);
+            //            }
+
+            //        }
+            //        else
+            //        {
+            //            EventUtil.printNotice("No valid USB drive with Account.txt found!", MessageUtil.ERROR);
+            //        }
+            //    }
+            //}
             return null;
         }
 

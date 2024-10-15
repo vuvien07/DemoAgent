@@ -2,9 +2,11 @@
 using FontAwesome.WPF;
 using Models;
 using NAudio.Wave;
+using Repositories;
 using Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -38,13 +40,14 @@ namespace DemoAgent
         private List<WavFile> files;
         private bool isMeeting;
         private readonly RecordService? recordService;
-       
+        private string wavFile = "";
+
         public Record(Account account, bool isMeeting)
         {
             InitializeComponent();
             this.account = account;
             this.isMeeting = isMeeting;
-            if(recordService == null )
+            if (recordService == null)
             {
                 recordService = RecordService.Instance;
                 recordService.InitializeService(account);
@@ -62,10 +65,6 @@ namespace DemoAgent
             recordService.StartWatching(OnDeviceConnected, OnDeviceDisconnected);
             if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) || recordService.IsRecording())
             {
-                var iconImage = RecordButton.Template.FindName("IconImage", RecordButton) as ImageAwesome;
-                if (iconImage.Icon == FontAwesomeIcon.Microphone)
-                {
-                }
                 UpdateUIForRecording();
             }
             LoadFiles();
@@ -73,19 +72,31 @@ namespace DemoAgent
 
         private void RecordButton_Click(object sender, RoutedEventArgs e)
         {
+            string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            if (!recordService.IsRecording())
+            {
+                if (recordService.RecordMode == "Automatic")
+                {
+                    Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
+                    wavFile = $"{meet.Name}";
+                }
+                else
+                {
+                    wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}";
+                }
+            }
+
+            finalePath = System.IO.Path.Combine(directory, wavFile);
             if (recordService.IsRecording())
             {
                 StopRecord();
                 return;
             }
             updateIcon(FontAwesomeIcon.Square);
-            string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-            string wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.wav";
-            finalePath = System.IO.Path.Combine(directory, wavFile);
             StartMonitoring();
             recordService.StartRecording(0, finalePath);
             UpdateUIForRecording();
@@ -95,7 +106,7 @@ namespace DemoAgent
         {
             if (timer == null)
             {
-                timer = new DispatcherTimer(); // Kiểm tra mỗi giây
+                timer = new DispatcherTimer();
                 timer.Interval = TimeSpan.FromSeconds(1);
                 timer.Tick -= Timer_Tick;
                 timer.Tick += Timer_Tick;
@@ -137,6 +148,8 @@ namespace DemoAgent
 
         private void Timer_Tick(object sender, EventArgs e)
         {
+            Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
+            String time = "";
             switch (recordService.RecordMode)
             {
                 case "Automatic":
@@ -145,6 +158,8 @@ namespace DemoAgent
                         timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
                         recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
                         TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                        FileNameLable.Content = wavFile;
+                        ;
                     }
                     else
                     {
@@ -157,6 +172,7 @@ namespace DemoAgent
                         timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
                         recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
                         TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                        FileNameLable.Content = wavFile;
                     }
                     else
                     {
@@ -208,15 +224,10 @@ namespace DemoAgent
 
         }
 
-        private List<WavFile> GetFiles()
-        {
-            return files;
-        }
-
         private void LoadFiles()
         {
             string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-            if(!File.Exists(directory))
+            if (!File.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
@@ -258,7 +269,6 @@ namespace DemoAgent
                             string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
                             string decryptedFilePath = System.IO.Path.Combine(folderPath, fileName + ".wav");
 
-                            // Decrypt the .cnp file to a .wav file
                             try
                             {
                                 UtilHelper.DecryptFile(path, decryptedFilePath, account.PrivateKey);
@@ -285,24 +295,11 @@ namespace DemoAgent
 
         private void lvRecordings_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            // Cuộn trong ScrollViewer
             if (scrollViewer != null)
             {
-                // Điều chỉnh cuộn theo số lượng di chuyển
                 scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
-                e.Handled = false; // Ngăn không cho sự kiện tiếp tục
+                e.Handled = false;
             }
         }
-
-        private void IconImage_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            // Thay đổi icon giữa Microphone và Stop
-            var iconImage = sender as ImageAwesome;
-            if (iconImage.Icon == FontAwesomeIcon.Microphone)
-            {
-                StopRecord();
-            }
-        }
-
     }
 }
