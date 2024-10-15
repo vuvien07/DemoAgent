@@ -62,16 +62,43 @@ namespace Services
                 DeviceNumber = selectedDevice,
                 WaveFormat = new WaveFormat(44100, 16, WaveInEvent.GetCapabilities(selectedDevice).Channels)
             };
+
             fileWriter = new WaveFileWriter(outputFilePath, waveInEvent.WaveFormat);
+            float volumeFactor = 2.0f;  // Hệ số tăng âm lượng, tăng gấp đôi âm lượng
+
             waveInEvent.DataAvailable += (s, e) =>
             {
-                float[] audioData = new float[e.BytesRecorded / 2];
+                // Ghi dữ liệu âm thanh vào file, nhưng sau khi điều chỉnh âm lượng
+                for (int index = 0; index < e.BytesRecorded; index += 2)
+                {
+                    // Đọc mẫu âm thanh
+                    short sample = BitConverter.ToInt16(e.Buffer, index);
 
+                    // Điều chỉnh âm lượng
+                    int adjustedSample = (int)(sample * volumeFactor);
+
+                    // Đảm bảo giá trị không vượt quá giới hạn của short
+                    adjustedSample = Math.Max(short.MinValue, Math.Min(short.MaxValue, adjustedSample));
+
+                    // Ghi lại mẫu đã điều chỉnh vào buffer
+                    byte[] adjustedBytes = BitConverter.GetBytes((short)adjustedSample);
+                    e.Buffer[index] = adjustedBytes[0];
+                    e.Buffer[index + 1] = adjustedBytes[1];
+                }
+
+                // Ghi dữ liệu đã điều chỉnh vào file
                 fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
-                OnAudioDataAvailable?.Invoke(audioData);
 
-                fileWriter.Flush();
+                // Chuyển đổi mẫu thành giá trị float (-1 đến 1) để xử lý thêm
+                float[] audioData = new float[e.BytesRecorded / 2];
+                for (int index = 0; index < e.BytesRecorded; index += 2)
+                {
+                    short sample = BitConverter.ToInt16(e.Buffer, index);
+                    audioData[index / 2] = sample / 32768f;
+                }
+                OnAudioDataAvailable?.Invoke(audioData);
             };
+
             waveInEvent.StartRecording();
             isRecording = true;
             finalPath = outputFilePath;
@@ -188,7 +215,7 @@ namespace Services
                 foreach (string file in files)
                 {
                     FileInfo fileInfo = new FileInfo(file);
-                    if (fileInfo.Exists)
+                    if (fileInfo.Exists && fileInfo.Extension.Equals(".cnp", StringComparison.OrdinalIgnoreCase))
                     {
                         waveFiles.Add(new WavFile
                         {
@@ -201,9 +228,11 @@ namespace Services
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                e.GetBaseException();
             }
+            waveFiles.Reverse();
             return waveFiles;
         }
 

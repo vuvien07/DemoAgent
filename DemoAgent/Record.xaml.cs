@@ -205,9 +205,6 @@ namespace DemoAgent
             }
 
         }
-
-        
-
         private void LoadFiles()
         {
             string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
