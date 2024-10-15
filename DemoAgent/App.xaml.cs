@@ -31,7 +31,6 @@ namespace DemoAgent
 
         public App()
         {
-            InitializeComponent();
             InitializePython();
             string baseDirectory = Directory.GetCurrentDirectory();
             DirectoryInfo directoryInfo = new DirectoryInfo(baseDirectory);

@@ -195,7 +195,8 @@ namespace DemoAgent
                     DemoAgentContext.INSTANCE.SaveChanges();
                 }
             }
-            string transcript = performRecognizeText($@"{finalePath}");
+            byte[] audioBytes = recordService.audioStream.ToArray();
+            string transcript = performRecognizeText(audioBytes);
             using (StreamWriter sw = new StreamWriter(transPath))
             {
                 sw.WriteLine(transcript);
@@ -307,13 +308,13 @@ namespace DemoAgent
             }
         }
 
-        private string performRecognizeText(string wavPath)
+        private string performRecognizeText(byte[] audioBytes)
         {
             string result = "";
             using (PyModule pyModule = Py.CreateScope())
             {
                 // Định nghĩa biến trong phạm vi
-                pyModule.Set("audio_bytes", wavPath);
+                pyModule.Set("audio_bytes", audioBytes);
                 pyModule.Set("model", app._model);
                 pyModule.Set("processor", app._processor);
                 pyModule.Set("device", app._device);
@@ -327,17 +328,23 @@ import torch
 import numpy as np
 
 
-def audio_transcribe(wavPath, model, processor, device):
+def audio_transcribe(audio_bytes, model, processor, device, sampling_rate=16000):
     try:
         # Read audio from bytes
-        audio_input, sample_rate = sf.read(wavPath)
+        audio_data, sr = sf.read(
+            io.BytesIO(audio_bytes),
+            format='RAW',
+            channels=1,
+            samplerate=sampling_rate,
+            subtype='PCM_16'
+        )
 
         # Ensure that the audio has the correct sample rate
-        if sample_rate != 16000:
-            audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
+        if sr != sampling_rate:
+            audio_data = librosa.resample(audio_data, orig_sr=sr, target_sr=sampling_rate)
 
         # Preprocess input data
-        input_values = processor(audio_input, return_tensors='pt', padding='longest').input_values
+        input_values = processor(audio_data, return_tensors=""pt"", padding=""longest"").input_values
         input_values = input_values.to(device)
 
         # Predict with the model
@@ -352,11 +359,12 @@ def audio_transcribe(wavPath, model, processor, device):
         return transcription
     
     except ValueError as ve:
-        print(f'ValueError: {ve} - Ensure the audio bytes are valid and compatible.')
+        print(f""ValueError: {ve} - Ensure the audio bytes are valid and compatible."")
     except RuntimeError as re:
-        print(f'RuntimeError: {re} - Check the model and processor compatibility with the input.')
+        print(f""RuntimeError: {re} - Check the model and processor compatibility with the input."")
     except Exception as e:
-        print(f'An error occurred during audio transcription: {e} - Audio input type: {type(audio_input)}')
+        print(f""An error occurred during audio transcription: {e} - Audio input type: {type(audio_input)}"")
+
                             ");
                 PyObject[] pyObject = new PyObject[] {
                                 pyModule.GetAttr("audio_bytes"),

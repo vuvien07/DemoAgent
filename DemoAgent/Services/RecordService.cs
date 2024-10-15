@@ -31,6 +31,7 @@ namespace Services
         private string finalPath;
         private string _recordMode;
         private string transcriptionPath;
+        public MemoryStream audioStream = new MemoryStream();
 
         public string FinalePath { get => finalPath; set => finalPath = value; }
         public string RecordMode { get => _recordMode; set => _recordMode = value; }
@@ -62,13 +63,15 @@ namespace Services
             waveInEvent = new WaveInEvent
             {
                 DeviceNumber = selectedDevice,
-                WaveFormat = new WaveFormat(44100, 16, WaveInEvent.GetCapabilities(selectedDevice).Channels)
+                WaveFormat = new WaveFormat(16000, 16, 1)
             };
             fileWriter = new WaveFileWriter(outputFilePath, waveInEvent.WaveFormat);
             waveInEvent.DataAvailable += (s, e) =>
             {
                 fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+                audioStream.Write(e.Buffer, 0, e.BytesRecorded);
                 fileWriter.Flush();
+                audioStream.Flush();
             };
             waveInEvent.StartRecording();
             isRecording = true;
