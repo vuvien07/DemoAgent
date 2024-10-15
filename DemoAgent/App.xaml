@@ -1,0 +1,231 @@
+﻿<Application x:Class="DemoAgent.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DemoAgent" StartupUri="Login.xaml" 
+             >
+    <Application.Resources>
+        <ResourceDictionary>
+            <Style x:Key="UserContainerMenuBtn" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="white"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <!-- Bỏ viền -->
+                <Setter Property="Padding" Value="10,5"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <!-- Thay đổi con trỏ khi hover -->
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" 
+                     CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <!-- Hiệu ứng hover -->
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#367ADE"/>
+                        <!-- Màu nền khi hover -->
+                        <Setter Property="Foreground" Value="White"/>
+                    </Trigger>
+
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="CustomBtnClose" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" 
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}" 
+                CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Margin" Value="0,0,5,0"/>
+                <!-- Khoảng cách giữa các nút -->
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#E0E0E0"/>
+                        <!-- Màu khi di chuột vào -->
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter Property="Background" Value="#B0B0B0"/>
+                        <!-- Màu khi nhấn -->
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="UserContainerMenu" TargetType="ToggleButton">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="white"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <!-- Bỏ viền -->
+                <Setter Property="Padding" Value="10,5"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <!-- Thay đổi con trỏ khi hover -->
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <!-- Hiệu ứng hover -->
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#367ADE"/>
+                        <!-- Màu nền khi hover -->
+                        <Setter Property="Foreground" Value="White"/>
+                    </Trigger>
+                    <!-- Hiệu ứng khi được chọn -->
+                    <Trigger Property="IsChecked" Value="True">
+                        <Setter Property="Background" Value="#3866D8"/>
+                        <!-- Màu nền khi được chọn -->
+                        <Setter Property="Foreground" Value="White"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="Usercontrol" TargetType="Button">
+                <Setter Property="Background" Value="#2A5D8F"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="BorderBrush" Value="#00A8CC"/>
+                <Setter Property="Height" Value="36"/>
+                <Setter Property="Width" Value="93"/>
+                <Setter Property="Margin" Value="10"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="Cursor" Value="Hand"/>
+
+                <Setter  Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                         BorderBrush="{TemplateBinding BorderBrush}"
+                         BorderThickness="1"
+                         CornerRadius="10"
+                         Padding="5">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="Usercrypto" TargetType="Button">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" 
+                        BorderBrush="{TemplateBinding BorderBrush}" 
+                        BorderThickness="1" 
+                        CornerRadius="15">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                                <!-- Hiệu ứng đổ bóng -->
+                                <Border.Effect>
+                                    <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="5" Opacity="0.4" />
+                                </Border.Effect>
+                            </Border>
+
+                            <!-- Thêm Trigger để thay đổi màu khi hover -->
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <!-- Đổi màu nền khi hover -->
+                                    <Setter Property="Background" Value="DarkBlue" />
+                                    <!-- Đổi màu chữ khi hover -->
+                                    <Setter Property="Foreground" Value="Yellow" />
+                                    <!-- Tăng hiệu ứng đổ bóng khi hover -->
+                                    <Setter Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="8" Opacity="0.6" />
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+
+                <!-- Các thuộc tính khác -->
+                <Setter Property="Background" Value="LightBlue" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontSize" Value="16" />
+                <Setter Property="FontWeight" Value="Bold" />
+                <Setter Property="Padding" Value="10,5" />
+                <Setter Property="BorderBrush" Value="#FF483D8B" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <Style x:Key="RoundButtonStyle" TargetType="Button">
+                <Setter Property="Width" Value="50"/>
+                <Setter Property="Height" Value="50"/>
+                <Setter Property="Background" Value="#3F8AFA"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="ToolTip" Value="Round Button"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Width="{TemplateBinding Width}"
+                            Height="{TemplateBinding Height}"
+                            CornerRadius="25">
+                                <!-- Bo góc để tạo hình tròn -->
+                                <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <!-- Hiệu ứng khi hover vào nút -->
+                <Setter Property="Button.Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="Black" BlurRadius="5" Direction="320" ShadowDepth="2"/>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <!-- Khi di chuột vào Button -->
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#5599FF"/>
+                    </Trigger>
+                    <!-- Khi Button được nhấn -->
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter Property="Background" Value="#3366FF"/>
+                        <Setter Property="Effect">
+                            <Setter.Value>
+                                <DropShadowEffect Color="Black" BlurRadius="8" Direction="320" ShadowDepth="4"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,157 @@
+﻿<Window x:Class="DemoAgent.UserContainer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DemoAgent"
+            xmlns:fa="http://schemas.fontawesome.io/icons/"
+        mc:Ignorable="d" 
+             d:DesignHeight="550" d:DesignWidth="1000"  
+        Title="Sound Vip Protected File"
+        Icon="Images/img1.png"
+        WindowStyle="None"
+        ResizeMode="NoResize" Width="1000" Height="600" >
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="120"/>
+            <ColumnDefinition Width="880"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Grid.Column="1" Background="#EAEDF0" MouseLeftButtonDown="Grid_MouseLeftButtonDown">
+            <Label Content="Sound Vip Protected Agent" Width="166" HorizontalAlignment="Left" Margin="0,-6,0,0" FontWeight="Bold" FontStyle="Italic" Foreground="#9D9FA1"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
+                <Button  Width="37" Click="MinimizeButton_Click" Style="{DynamicResource CustomBtnClose}">
+                    <fa:ImageAwesome  Icon="WindowMinimize" Width="12" Foreground="Black"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+                <Button  Width="27" Click="CloseButton_Click"  Style="{DynamicResource CustomBtnClose}" >
+                    <fa:ImageAwesome  Icon="Close" Width="12" Foreground="Black"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <StackPanel Name="spMenu" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Background="#3F8AFA" VerticalAlignment="Stretch">
+            <Grid Background="#3F8AFA" >
+                <Image Source="Images/fauget1.png" Margin="1,0,65,3"/>
+                <Label Content="Record" FontStyle="Italic" FontWeight="Bold" Foreground="Black" Margin="47,4,20,10"/>
+                <Label Content="Guard" FontStyle="Oblique" FontWeight="Bold" Foreground="White" Margin="60,21,0,0"/>
+            </Grid>
+            <Grid Width="70" Height="70" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave">
+                <fa:ImageAwesome  Icon="UserSecret" Width="25" Foreground="White"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Label Content="Account"   FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,42,0,0"/>
+            </Grid>
+            <Line X1="0" Y1="0" X2="100" Y2="0" Stroke="White" StrokeThickness="2" HorizontalAlignment="Center" />
+
+            <ToggleButton x:Name="btCryto" Margin="0,10,0,10" Click="btCryto_Click"  Height="36" Width="120"  Style="{DynamicResource UserContainerMenu}" >
+                <StackPanel Orientation="Horizontal">
+                    <fa:ImageAwesome Icon="Lock" Height="20" Width="20" Foreground="White" Margin="0,0,10,0"/>
+                    <TextBlock Text="Crypto " VerticalAlignment="Center"/>
+                </StackPanel>
+            </ToggleButton>
+            <ToggleButton x:Name="btMeeting" Click="btMeeting_Click" Margin="0,0,0,10"  Height="36" Style="{DynamicResource UserContainerMenu}" >
+                <StackPanel Orientation="Horizontal">
+                    <fa:ImageAwesome Icon="Bullhorn" Height="20" Width="20" Foreground="White" Margin="0,0,5,0"/>
+                    <TextBlock Text="Meeting" VerticalAlignment="Center"/>
+                </StackPanel>
+            </ToggleButton>
+
+            <ToggleButton x:Name="btRecord" Margin="0,0,0,10" Click="btRecord_Click"  Height="36" Style="{DynamicResource UserContainerMenu}" >
+                <StackPanel Orientation="Horizontal">
+                    <fa:ImageAwesome Icon="FileSoundOutline" Height="20" Width="20" Foreground="White"  Margin="0,0,10,0"/>
+                    <TextBlock Text="Record" VerticalAlignment="Center" Width="41"/>
+                </StackPanel>
+            </ToggleButton>
+
+            <ToggleButton x:Name="btLive" Margin="0,0,0,10" Click="btLive_Click"  Height="36" Style="{DynamicResource UserContainerMenu}">
+                <StackPanel Orientation="Horizontal">
+                    <fa:ImageAwesome Icon="Microphone" Height="20" Width="15" Foreground="White" Margin="0,0,10,0"/>
+                    <TextBlock Text="Live" VerticalAlignment="Center" Width="37"/>
+                </StackPanel>
+            </ToggleButton>
+
+
+
+        </StackPanel>
+
+        <Grid Background="#3F8AFA" Grid.Row="2" Grid.Column="0">
+            <fa:ImageAwesome Icon="QuestionCircle" Height="20" Width="20" Foreground="White" Margin="0,10,5,10" VerticalAlignment="Bottom" HorizontalAlignment="Center" />
+
+        </Grid>
+        <Grid Background="LightGray" Grid.Row="2" Grid.Column="1">
+            <Grid Margin="0,0,670,0">
+                <fa:ImageAwesome  Icon="file" Height="30" Width="30" Foreground="LightYellow" HorizontalAlignment="Left" Margin="10,5,0,5"/>
+                <Label Content="Version" FontWeight="Bold" Foreground="#0091FF" Margin="40,0,24,15"/>
+                <Label Content="1.0.0" FontWeight="Bold" Foreground="White" Margin="40,14,24,2"/>
+            </Grid>
+
+
+            <Grid>
+                <!-- Biểu tượng Menu (Hamburger Icon) -->
+                <Grid Name="MenuIconGrid" Margin="592,0,0,0"  Panel.ZIndex="1" MouseLeftButtonUp="MenuIconGrid_MouseLeftButtonUp">
+                    <fa:ImageAwesome Icon="Tasks" Width="30" Foreground="#3F8AFA" HorizontalAlignment="Center" Margin="0,8,0,10" Name="bellOff" />
+                    <fa:ImageAwesome Icon="CaretDown" Height="30" Width="30" Foreground="#3F8AFA" HorizontalAlignment="Center" Margin="0,8,0,10" Name="BellOn" Visibility="Collapsed"/>
+                </Grid>
+            </Grid>
+
+
+        </Grid>
+
+        <Grid Grid.Row="1" Grid.Column="1" Background="WhiteSmoke" >
+            <Grid>
+                <Grid.Background>
+                    <ImageBrush ImageSource="Images\wait.png"
+                        Stretch="Uniform" AlignmentX="Right"
+                        ViewportUnits="RelativeToBoundingBox"
+                        Viewport="0,0,0.75,1"
+                        AlignmentY="Top" />
+                </Grid.Background>
+                <!-- Menu StackPanel, ẩn ban đầu -->
+                <StackPanel Name="MenuPanel" Background="#52A0FF"  Panel.ZIndex="4" Margin="720,411,31,0" Visibility="Collapsed">
+                    <Button Height="40"  Margin="0,5,0,0" Name="btProfileUser" Style="{DynamicResource UserContainerMenuBtn}" Click="btProfileUser_Click">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <fa:ImageAwesome Icon="User" Height="20" Foreground="White" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                            <TextBlock Text="Profile" VerticalAlignment="Center" Foreground="White"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Height="40" Margin="0" Name="btInformationApp" Style="{DynamicResource UserContainerMenuBtn}" Click="btInformationApp_Click">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <fa:ImageAwesome Icon="InfoCircle" Height="20" Foreground="White" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                            <TextBlock Text="Information" VerticalAlignment="Center" Foreground="White"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Height="40" Margin="0" Name="btContactApp" Style="{DynamicResource UserContainerMenuBtn}" Click="btContactApp_Click">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <fa:ImageAwesome Icon="FacebookSquare" Height="20" Foreground="Blue" VerticalAlignment="Center" Margin="2,0,10,0"/>
+                            <TextBlock Text="Contact us..." VerticalAlignment="Center" Foreground="White"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Panel.ZIndex="4" Background="#367ADE" Margin="0,22,715,324" Visibility="Collapsed"  x:Name="InfoStackPanel">
+                    <Grid>
+                        <fa:ImageAwesome  Icon="Building" Height="30" Width="30" Foreground="White" HorizontalAlignment="Left" Margin="10,22,0,17"/>
+                        <Label Content="Company" FontWeight="Bold" Foreground="White" Margin="5,0,33,43" FontSize="12"  />
+                        <Label Name="lbCompany"  FontWeight="Bold" Foreground="White" Margin="34,15,0,0" FontSize="15"/>
+
+                    </Grid>
+                    <Grid>
+                        <fa:ImageAwesome  Icon="AddressCard" Height="30" Width="30" Foreground="White" HorizontalAlignment="Left" Margin="8,16,0,4"/>
+                        <Label Content="Agent No"  FontWeight="Bold" Foreground="White" FontSize="12" Margin="4,0,50,27"/>
+                        <Label Name="lbId"  FontWeight="Bold" Foreground="White" Margin="40,18,24,-2"/>
+                    </Grid>
+                    <Grid >
+                        <fa:ImageAwesome  Icon="UserCircle" Width="25" Foreground="White" HorizontalAlignment="Left" Margin="10,21,0,10"/>
+                        <Label Content="Account"  FontWeight="Bold" Foreground="White" Margin="4,0,60,33"/>
+                        <Label Name="lbAccount" FontWeight="Bold" Foreground="White" Margin="40,18,24,-2"/>
+                    </Grid>
+                </StackPanel>
+                <Viewbox Name="ContainerUser" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

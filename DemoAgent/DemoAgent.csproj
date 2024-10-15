@@ -1,0 +1,92 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+	<EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization> 
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="defile\**" />
+    <Compile Remove="recorded\**" />
+    <EmbeddedResource Remove="defile\**" />
+    <EmbeddedResource Remove="recorded\**" />
+    <None Remove="defile\**" />
+    <None Remove="recorded\**" />
+    <Page Remove="defile\**" />
+    <Page Remove="recorded\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Images\fauget.png" />
+    <None Remove="Images\fauget1.png" />
+    <None Remove="Images\gm.png" />
+    <None Remove="Images\gm2.png" />
+    <None Remove="Images\img1.png" />
+    <None Remove="Images\mh.png" />
+    <None Remove="Images\mh2.png" />
+    <None Remove="Images\wait.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SplashScreen Include="Images\img1.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.6.1" />
+    <PackageReference Include="FontAwesome.WPF" Version="4.7.0.9" />
+    <PackageReference Include="MaterialDesignColors" Version="3.1.0" />
+    <PackageReference Include="MaterialDesignThemes" Version="5.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="pythonnet" Version="3.0.4" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Speech" Version="8.0.0" />
+    <PackageReference Include="Vosk" Version="0.3.38" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\fauget.png" />
+    <Resource Include="Images\fauget1.png" />
+    <Resource Include="Images\gm.png" />
+    <Resource Include="Images\gm2.png" />
+    <Resource Include="Images\mh.png" />
+    <Resource Include="Images\mh2.png" />
+    <Resource Include="Images\wait.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Account.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="SpeechRecognition.py">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>
