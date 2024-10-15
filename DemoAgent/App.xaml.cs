@@ -1,6 +1,8 @@
 ﻿using HotelManagement.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Models;
+using NAudio.CoreAudioApi;
+using Python.Runtime;
 using Services;
 using System.ComponentModel;
 using System.Configuration;
@@ -23,9 +25,14 @@ namespace DemoAgent
         System.Windows.Forms.NotifyIcon nIcon = new System.Windows.Forms.NotifyIcon();
         public Window currWindow;
         public Account? account;
+        public dynamic? _processor;
+        public dynamic? _model;
+        public dynamic? _device;
+
 
         public App()
         {
+            InitializePython();
             string baseDirectory = Directory.GetCurrentDirectory();
             string iconPath = @"D:\CMCProject1\DemoAgentV2\DemoAgent\fullscreen_arrow_icon_263604 (1).ico";
             nIcon.Icon = new System.Drawing.Icon(iconPath);
@@ -99,6 +106,28 @@ namespace DemoAgent
         {
             window.Closing -= Closing_Window;
             window.Closing += Closing_Window;
+        }
+
+        private void InitializePython()
+        {
+            if (!PythonEngine.IsInitialized)
+                PythonEngine.Initialize();
+            try
+            {
+                using (Py.GIL())
+                {
+                    dynamic speechRecogitionScript = Py.Import("speechtext");
+                    if (_model is null)
+                        _model = speechRecogitionScript.load_model();
+                    if (_processor is null)
+                        _processor = speechRecogitionScript.load_processor();
+                    if (_device is null)
+                        _device = speechRecogitionScript.get_device();
+                }
+            }
+            catch (Exception ex)
+            {
+            }
         }
     }
 
