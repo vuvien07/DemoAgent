@@ -108,6 +108,7 @@ namespace DemoAgent
 
         private void InitializePython()
         {
+            Environment.SetEnvironmentVariable("PYTHONNET_PYDLL", @"C:\Program Files\Python312\python312.dll");
             if (!PythonEngine.IsInitialized)
                 PythonEngine.Initialize();
             try
@@ -125,6 +126,7 @@ namespace DemoAgent
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
             }
         }
     }
