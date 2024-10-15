@@ -64,6 +64,7 @@ namespace DemoAgent
         {
             EnableButton(lsButton);
             ContainerUser.Child = new SpeechLive();
+            UncheckOthers(btLive);
             DisableButton((ToggleButton)sender);
         }
 
@@ -71,6 +72,7 @@ namespace DemoAgent
         {
             EnableButton(lsButton);
             ContainerUser.Child = new Record(account, false);
+            UncheckOthers(btRecord);
             DisableButton((ToggleButton)sender);
         }
 
@@ -79,6 +81,7 @@ namespace DemoAgent
             EnableButton(lsButton);
             var userCrypto = new UserCrypto(account);
             ContainerUser.Child = userCrypto;
+            UncheckOthers(btCryto);
             DisableButton((ToggleButton)sender);
         }
 
@@ -87,6 +90,7 @@ namespace DemoAgent
             EnableButton(lsButton);
             var meeting = new UserMeeting(account);
             ContainerUser.Child = meeting;
+            UncheckOthers(btMeeting);
             DisableButton((ToggleButton)sender);
         }
 
