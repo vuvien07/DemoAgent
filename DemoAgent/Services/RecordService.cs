@@ -92,7 +92,7 @@ namespace Services
 
                 // Ghi dữ liệu đã điều chỉnh vào file
                 fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
-
+                
                 // Chuyển đổi mẫu thành giá trị float (-1 đến 1) để xử lý thêm
                 float[] audioData = new float[e.BytesRecorded / 2];
                 for (int index = 0; index < e.BytesRecorded; index += 2)

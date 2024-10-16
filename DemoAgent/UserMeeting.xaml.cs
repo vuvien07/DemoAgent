@@ -51,6 +51,7 @@ namespace DemoAgent
                 lbCurrent.Content += $"{meeting.Name} ({meeting.TimeStart}-{meeting.TimeEnd})";
             }
             var historyMeetings = MeetingDBContext.Instance.GetHistoryMeetingsByCreator(account.Username);
+            historyMeetings.Reverse();
             lvMeetings.ItemsSource = historyMeetings;
         }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
