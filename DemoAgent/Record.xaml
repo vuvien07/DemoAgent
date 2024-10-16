@@ -15,7 +15,11 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Grid.Column="0">
+            <StackPanel Orientation="Horizontal">
+                <fa:FontAwesome Icon="Folder" Foreground="Orange" FontSize="30" Margin="10,5,0,0"/>
             <Label Content="Recently Recorded" FontSize="20" FontWeight="Bold"/>
+            </StackPanel>
+
             <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Height="365">
                 <ListView x:Name="lvRecordings" Width="290" BorderThickness="0" Background="Transparent"  MouseWheel="lvRecordings_MouseWheel" >
                     
@@ -31,7 +35,7 @@
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Open in Folder" Click="MenuItemOpenFolder_Click"/>
-                            <MenuItem Header="Decode"/>
+                            <MenuItem Header="Decode" Click="DecryptWavFile"/>
                             <MenuItem Header="Speech to Text"/>
                             <MenuItem Header="Delete" Click="MenuItemDelete_Click" />
                         </ContextMenu>
@@ -43,14 +47,14 @@
         <Line X1="0" Y1="0" X2="0" Y2="450" Stroke="Gray" StrokeThickness="3" HorizontalAlignment="Right"   />
 
         <StackPanel Grid.Row="0" Grid.Column="1">
-            <Label Content="Settings" FontSize="20" VerticalAlignment="Center" HorizontalAlignment="Left" FontWeight="Bold"/>
+            <Label Content="Record" FontSize="20" VerticalAlignment="Center" HorizontalAlignment="Left" FontWeight="Bold"/>
             <StackPanel Orientation="Horizontal" >
                 <Label Content="Select input device for recording " FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Center" />
                 <ComboBox x:Name="DeviceCombobox" Width="255"  Height="30" DisplayMemberPath="ProductName" SelectedValuePath="Id" SelectedIndex="0"/>
             </StackPanel>
                 <Canvas x:Name="WaveformCanvas"  Background="White"  Visibility="Visible" Width="450" Height="140" Margin="0,10,0,10"/>
-                
-            <Button Background="White" BorderBrush="Black" HorizontalAlignment="Center" Click="RecordButton_Click" Height="60" Width="70" Margin="0,10,0,10" Name="RecordButton">
+
+            <Button Background="White" BorderBrush="Black"  HorizontalAlignment="Center" Click="RecordButton_Click" Height="60" Width="70" Margin="0,10,0,10" Name="RecordButton">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Grid>

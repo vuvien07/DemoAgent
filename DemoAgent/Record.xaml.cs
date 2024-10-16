@@ -239,7 +239,7 @@ namespace DemoAgent
 
       
 
-        private void DecryptWavFile(object sender, MouseButtonEventArgs e)
+        private void DecryptWavFile(object sender, RoutedEventArgs e)
         {
             var selectedFile = lvRecordings.SelectedValue as WavFile;
             if (selectedFile != null)
