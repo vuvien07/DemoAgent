@@ -7,8 +7,6 @@
             xmlns:fa="http://schemas.fontawesome.io/icons/"
         mc:Ignorable="d" 
              d:DesignHeight="550" d:DesignWidth="1000"  
-        Title="Sound Vip Protected File"
-        Icon="Images/img1.png"
         WindowStyle="None"
         ResizeMode="NoResize" Width="1000" Height="600" >
     <Grid>
