@@ -67,8 +67,8 @@
 
             <ToggleButton x:Name="btLive" Margin="0,0,0,10" Click="btLive_Click"  Height="36" Style="{DynamicResource UserContainerMenu}">
                 <StackPanel Orientation="Horizontal">
-                    <fa:ImageAwesome Icon="Microphone" Height="20" Width="15" Foreground="White" Margin="0,0,10,0"/>
-                    <TextBlock Text="Live" VerticalAlignment="Center" Width="37"/>
+                    <fa:ImageAwesome Icon="Book" Height="20" Width="20" Foreground="White" Margin="0,0,10,0"/>
+                    <TextBlock Text="Text" VerticalAlignment="Center" Width="37"/>
                 </StackPanel>
             </ToggleButton>
 
