@@ -39,7 +39,7 @@ namespace DemoAgent
 
             if (directoryInfo != null)
             {
-                var iconPath = Path.Combine(directoryInfo.FullName, "Image", "fauget1.ico");
+                var iconPath = Path.Combine(directoryInfo.FullName, "Images", "fauget1.ico");
                 if (File.Exists(iconPath))
                 {
                     nIcon.Icon = new System.Drawing.Icon(iconPath);
