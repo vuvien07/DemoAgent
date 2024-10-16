@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DemoAgent"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Icon="D:\CMCRemakeV2\DemoAgent\DemoAgent\Images\img1.png" Height="450" Width="800">
 
     <Grid Background="White">
         <!--<Grid.RowDefinitions>

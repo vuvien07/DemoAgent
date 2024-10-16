@@ -68,9 +68,12 @@ namespace DemoAgent
             currWindow = window;
         }
 
-        public static void Closing_Window(object sender, CancelEventArgs e)
+        public static async void Closing_Window(object sender, CancelEventArgs e)
         {
-            MessageBoxResult result = System.Windows.MessageBox.Show("Have order Done?", "Question", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            MessageBoxResult result = System.Windows.MessageBox.Show(
+                "Have order Done?", "Question",
+                MessageBoxButton.YesNo, MessageBoxImage.Question
+            );
 
             if (result == MessageBoxResult.Yes)
             {
@@ -78,15 +81,18 @@ namespace DemoAgent
                 {
                     var app = System.Windows.Application.Current as App;
                     RecordService recordService = RecordService.Instance;
-                    if (app.account != null)
+
+                    // Dừng ghi âm nếu đang ghi
+                    if (app?.account != null && recordService.IsRecording())
                     {
-                        if (recordService.IsRecording())
-                        {
-                            recordService.StopRecording(recordService.FinalePath, (System.Windows.Application.Current as App)?.account);
-                        }
+                        recordService.StopRecording(recordService.FinalePath, app.account);
                     }
-                    PythonEngine.Shutdown();
-                    app.Shutdown();
+
+                    // Ẩn cửa sổ trước khi tắt
+                    window.Visibility = Visibility.Hidden;
+
+                    // Thực hiện tắt Python đồng bộ trước khi shutdown ứng dụng
+                    await ShutdownPythonAndApp(app);
                 }
             }
             else
@@ -98,6 +104,22 @@ namespace DemoAgent
                 }
             }
         }
+
+        private static async Task ShutdownPythonAndApp(App app)
+        {
+            try
+            {
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => PythonEngine.Shutdown());
+
+                app.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                // Xử lý lỗi nếu có
+                Console.WriteLine($"Lỗi khi tắt ứng dụng: {ex.Message}");
+            }
+        }
+
 
         public void SubscribeClosingEvent(Window window)
         {

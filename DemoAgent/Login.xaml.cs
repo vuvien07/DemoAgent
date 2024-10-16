@@ -1,4 +1,5 @@
 ﻿using DemoAgent.Util;
+using FontAwesome.WPF;
 using HotelManagement.Util;
 using Models;
 using Repositories;
@@ -44,6 +45,8 @@ namespace DemoAgent
             EventUtil.PrintNotice -= MessageBoxUtil.PrintMessageBox;
             EventUtil.PrintNotice += MessageBoxUtil.PrintMessageBox;
             StartUsbWatcher();
+            (System.Windows.Application.Current as App).SetCurrWindow(this);
+            (System.Windows.Application.Current as App).SubscribeClosingEvent(this);
         }
 
         private void DeviceInsertedEvent(object sender, EventArrivedEventArgs e)
