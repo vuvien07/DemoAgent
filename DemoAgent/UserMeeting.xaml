@@ -57,7 +57,7 @@
                         <GridViewColumn Header="Start"  DisplayMemberBinding="{Binding TimeStart}"/>
                         <GridViewColumn Header="End" DisplayMemberBinding="{Binding TimeEnd}"/>
                         <GridViewColumn Header="Creator"  DisplayMemberBinding="{Binding Creator}"/>
-                        <GridViewColumn Header="Status"  DisplayMemberBinding="{Binding Status}"/>
+                        <GridViewColumn Header="Status"  DisplayMemberBinding="{Binding status}"/>
                     </GridView>
                 </ListView.View>
             </ListView>

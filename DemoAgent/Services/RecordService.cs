@@ -30,6 +30,8 @@ namespace Services
         private Account account;
         private string finalPath;
         private string _recordMode;
+        public int _count = 0;
+        public event Action<float[]> OnAudioDataAvailable;
         private string transcriptionPath;
 
         public string FinalePath { get => finalPath; set => finalPath = value; }
@@ -64,11 +66,43 @@ namespace Services
                 DeviceNumber = selectedDevice,
                 WaveFormat = new WaveFormat(16000, 16, 1)
             };
+
             fileWriter = new WaveFileWriter(outputFilePath, waveInEvent.WaveFormat);
+            float volumeFactor = 2.0f;  // Hệ số tăng âm lượng, tăng gấp đôi âm lượng
+
             waveInEvent.DataAvailable += (s, e) =>
             {
+                // Ghi dữ liệu âm thanh vào file, nhưng sau khi điều chỉnh âm lượng
+                for (int index = 0; index < e.BytesRecorded; index += 2)
+                {
+                    // Đọc mẫu âm thanh
+                    short sample = BitConverter.ToInt16(e.Buffer, index);
+
+                    // Điều chỉnh âm lượng
+                    int adjustedSample = (int)(sample * volumeFactor);
+
+                    // Đảm bảo giá trị không vượt quá giới hạn của short
+                    adjustedSample = Math.Max(short.MinValue, Math.Min(short.MaxValue, adjustedSample));
+
+                    // Ghi lại mẫu đã điều chỉnh vào buffer
+                    byte[] adjustedBytes = BitConverter.GetBytes((short)adjustedSample);
+                    e.Buffer[index] = adjustedBytes[0];
+                    e.Buffer[index + 1] = adjustedBytes[1];
+                }
+
+                // Ghi dữ liệu đã điều chỉnh vào file
                 fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+
+                // Chuyển đổi mẫu thành giá trị float (-1 đến 1) để xử lý thêm
+                float[] audioData = new float[e.BytesRecorded / 2];
+                for (int index = 0; index < e.BytesRecorded; index += 2)
+                {
+                    short sample = BitConverter.ToInt16(e.Buffer, index);
+                    audioData[index / 2] = sample / 32768f;
+                }
+                OnAudioDataAvailable?.Invoke(audioData);
             };
+
             waveInEvent.StartRecording();
             isRecording = true;
             finalPath = outputFilePath;
@@ -88,9 +122,12 @@ namespace Services
                     if (File.Exists(finalePath))
                     {
                         string directoryPath = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-                        string fileName = System.IO.Path.GetFileNameWithoutExtension(finalePath);
-                        string encryptedFileName = $"{fileName}.cnp";
-                        string encryptedFilePath = Path.Combine(directoryPath, encryptedFileName);
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+                        string encryptedFileName = $"{Path.GetFileName(finalePath)}.cnp";
+                        string encryptedFilePath = Path.Combine(directoryPath, encryptedFileName);                        
                         UtilHelper.EncryptFile(finalePath, encryptedFilePath, account.PublicKey);
                     }
                     var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
@@ -100,7 +137,8 @@ namespace Services
                         DemoAgentContext.INSTANCE.Meetings.Update(meeting);
                         DemoAgentContext.INSTANCE.SaveChanges();
                     }
-                    EventUtil.printNotice($"Save record to path {finalePath} successfully!", MessageUtil.SUCCESS);
+                    EventUtil.printNotice($"Save record successfully!", MessageUtil.SUCCESS);
+                    _count = 0;
                 }catch(Exception) {
                     EventUtil.printNotice($"An error occured while save recording file!", MessageUtil.ERROR);
                 }
@@ -179,7 +217,7 @@ namespace Services
                 foreach (string file in files)
                 {
                     FileInfo fileInfo = new FileInfo(file);
-                    if (fileInfo.Exists)
+                    if (fileInfo.Exists && fileInfo.Extension.Equals(".cnp", StringComparison.OrdinalIgnoreCase))
                     {
                         waveFiles.Add(new WavFile
                         {
@@ -192,9 +230,11 @@ namespace Services
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                e.GetBaseException();
             }
+            waveFiles.Reverse();
             return waveFiles;
         }
 

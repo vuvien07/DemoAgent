@@ -7,6 +7,7 @@ using Repositories;
 using Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -61,6 +62,8 @@ namespace DemoAgent
                 timeSpan = TimeSpan.Zero;
                 recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             }
+            recordService.OnAudioDataAvailable += OnAudioDataAvailable;
+
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -76,6 +79,8 @@ namespace DemoAgent
 
         private void RecordButton_Click(object sender, RoutedEventArgs e)
         {
+            string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
+            if (!Directory.Exists(directory))
             if (recordService.IsRecording())
             {
                 StopRecord();
@@ -88,6 +93,26 @@ namespace DemoAgent
             {
                 Directory.CreateDirectory(recordDirectory);
             }
+            if (!recordService.IsRecording())
+            {
+                if (recordService.RecordMode == "Automatic")
+                {
+                    Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
+                    wavFile = $"{meet.Name}";
+                }
+                else
+                {
+                    wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}";
+                }
+            }
+
+            finalePath = System.IO.Path.Combine(directory, wavFile);
+            if (recordService.IsRecording())
+            {
+                StopRecord();
+                return;
+            }
+            updateIcon(FontAwesomeIcon.Square);
             if(!Directory.Exists(transcriptDirectory))
             {
                 Directory.CreateDirectory(transcriptDirectory);
@@ -116,7 +141,7 @@ namespace DemoAgent
         {
             if (timer == null)
             {
-                timer = new DispatcherTimer(); // Kiểm tra mỗi giây
+                timer = new DispatcherTimer();
                 timer.Interval = TimeSpan.FromSeconds(1);
                 timer.Tick -= Timer_Tick;
                 timer.Tick += Timer_Tick;
@@ -158,6 +183,8 @@ namespace DemoAgent
 
         private void Timer_Tick(object sender, EventArgs e)
         {
+            Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
+            String time = "";
             switch (recordService.RecordMode)
             {
                 case "Automatic":
@@ -166,6 +193,8 @@ namespace DemoAgent
                         timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
                         recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
                         TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                        FileNameLable.Content = wavFile;
+                        ;
                     }
                     else
                     {
@@ -178,6 +207,7 @@ namespace DemoAgent
                         timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
                         recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
                         TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                        FileNameLable.Content = wavFile;
                     }
                     else
                     {
@@ -194,7 +224,7 @@ namespace DemoAgent
             StopMonitoring();
             recordService.StopRecording(finalePath, account);
             recordService.StopWatching();
-            TimerLabel.Content = $"Record time:";
+            TimerLabel.Content = $"00:00:00";
             timeSpan = TimeSpan.Zero;
             recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             recordService.RecordMode = MessageUtil.RECORD_MANUAL;
@@ -226,7 +256,7 @@ namespace DemoAgent
                 timeSpan = (TimeSpan)recordService.GetTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"));
                 StartMonitoring();
                 updateIcon(FontAwesomeIcon.Square);
-                TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                TimerLabel.Content = $"{timeSpan.ToString(@"hh\:mm\:ss")}";
             }
             else
             {
@@ -235,15 +265,10 @@ namespace DemoAgent
 
         }
 
-        private List<WavFile> GetFiles()
-        {
-            return files;
-        }
-
         private void LoadFiles()
         {
             string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-            if(!File.Exists(directory))
+            if (!File.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
@@ -251,25 +276,9 @@ namespace DemoAgent
             lvRecordings.ItemsSource = files;
         }
 
-        private void RemoveFile(object sender, MouseButtonEventArgs e)
-        {
-            var selectedFile = lvRecordings.SelectedValue as WavFile;
-            if (selectedFile != null)
-            {
-                try
-                {
-                    DialogResult dialogResult = System.Windows.Forms.MessageBox.Show($"Are you sure to delete this file at {selectedFile.Path}?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                    if (dialogResult == DialogResult.Yes)
-                    {
-                        recordService.RemoveWavFile(files, selectedFile.Path);
-                        LoadFiles();
-                    }
-                }
-                catch (Exception) { }
-            }
-        }
+      
 
-        private void DecryptWavFile(object sender, MouseButtonEventArgs e)
+        private void DecryptWavFile(object sender, RoutedEventArgs e)
         {
             var selectedFile = lvRecordings.SelectedValue as WavFile;
             if (selectedFile != null)
@@ -285,7 +294,6 @@ namespace DemoAgent
                             string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
                             string decryptedFilePath = System.IO.Path.Combine(folderPath, fileName + ".wav");
 
-                            // Decrypt the .cnp file to a .wav file
                             try
                             {
                                 UtilHelper.DecryptFile(path, decryptedFilePath, account.PrivateKey);
@@ -312,15 +320,106 @@ namespace DemoAgent
 
         private void lvRecordings_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            // Cuộn trong ScrollViewer
             if (scrollViewer != null)
             {
-                // Điều chỉnh cuộn theo số lượng di chuyển
                 scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
-                e.Handled = false; // Ngăn không cho sự kiện tiếp tục
+                e.Handled = false;
+            }
+        }
+        private void UpdateWaveform(float[] audioData)
+        {
+            // Xóa canvas cũ
+            WaveformCanvas.Children.Clear();
+
+            // Tạo Polyline để vẽ đường sóng âm
+            var polyline = new Polyline
+            {
+                Stroke = new LinearGradientBrush(
+                    Colors.LightBlue, Colors.Blue, 90), // Tạo hiệu ứng chuyển màu
+                StrokeThickness = 4 // Độ dày đường kẻ
+            };
+
+            double centerY = WaveformCanvas.ActualHeight / 2;
+            double width = WaveformCanvas.ActualWidth;
+            double pointSpacing = width / audioData.Length;
+
+            for (int i = 0; i < audioData.Length; i++)
+            {
+                double x = i * pointSpacing;
+                double y = centerY - (audioData[i] * centerY);
+
+                polyline.Points.Add(new System.Windows.Point(x, y));
+            }
+
+            WaveformCanvas.Children.Add(polyline);
+
+            AddWaveformBackground(WaveformCanvas);
+        }
+
+        private void AddWaveformBackground(Canvas canvas)
+        {
+            var background = new System.Windows.Shapes.Rectangle
+            {
+                Width = canvas.ActualWidth,
+                Height = canvas.ActualHeight,
+                Fill = new LinearGradientBrush(
+                    Colors.White, Colors.LightGray, 90) // Hiệu ứng gradient cho nền
+            };
+
+            canvas.Children.Insert(0, background); // Đặt nền phía sau đường sóng âm
+        }
+
+
+        private void OnAudioDataAvailable(float[] audioData)
+        {
+            Dispatcher.Invoke(() => UpdateWaveform(audioData));
+        }
+
+        private void MenuItemDelete_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedFile = lvRecordings.SelectedValue as WavFile;
+            if (selectedFile != null)
+            {
+                try
+                {
+                    DialogResult dialogResult = System.Windows.Forms.MessageBox.Show($"Are you sure to delete this file at {selectedFile.Path}?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (dialogResult == DialogResult.Yes)
+                    {
+                        recordService.RemoveWavFile(files, selectedFile.Path);
+                        LoadFiles();
+                    }
+                }
+                catch (Exception) { }
             }
         }
 
+        private void MenuItemOpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedFile = lvRecordings.SelectedValue as WavFile;
+            if (selectedFile != null)
+            {
+                try
+                {
+                    // Mở thư mục chứa file đã chọn
+                    string directoryPath = System.IO.Path.GetDirectoryName(selectedFile.Path);
+                    if (Directory.Exists(directoryPath))
+                    {
+                        var processStartInfo = new ProcessStartInfo
+                        {
+                            FileName = directoryPath,
+                            UseShellExecute = true
+                        };
+                        Process.Start(processStartInfo);
+                    }
+                    else
+                    {
+                        EventUtil.printNotice("Thư mục không tồn tại!", MessageUtil.ERROR);
+                    }
+                }
+                catch (Exception)
+                {
+                    EventUtil.printNotice("Đã xảy ra lỗi!", MessageUtil.ERROR);
+                }
         private string performRecognizeText(string wavPath)
         {
             string result = "";

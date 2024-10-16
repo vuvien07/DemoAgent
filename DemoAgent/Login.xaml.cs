@@ -34,8 +34,6 @@ namespace DemoAgent
         private ManagementEventWatcher? deleteWatcher;
 
 
-        public ManagementEventWatcher RemoveWatcher => deleteWatcher;
-
         public ManagementEventWatcher InsertWatcher { get => insertWatcher; set => insertWatcher = value; }
 
 
@@ -57,6 +55,7 @@ namespace DemoAgent
                 {
                     isLoggingIn = true;
                     InitializeTimer();
+                    
                 }
             });
         }
@@ -113,7 +112,6 @@ namespace DemoAgent
         private Account? GetAccount()
         {
             DriveInfo[] allDrives = DriveInfo.GetDrives();
-
             foreach (DriveInfo drive in allDrives)
             {
                 if (drive.DriveType == DriveType.Removable && drive.IsReady)
@@ -151,6 +149,25 @@ namespace DemoAgent
             return null;
         }
 
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close(); // Đóng cửa sổ
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized; // Thu nhỏ cửa sổ
+        }
+
+        private void Grid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Kiểm tra xem chuột có phải là nút trái không
+            if (e.ButtonState == MouseButtonState.Pressed)
+            {
+                // Kéo cửa sổ
+                this.DragMove();
+            }
+        }
         private void StartUsb()
         {
             insertWatcher = new ManagementEventWatcher();

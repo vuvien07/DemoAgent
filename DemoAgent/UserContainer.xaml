@@ -7,8 +7,6 @@
             xmlns:fa="http://schemas.fontawesome.io/icons/"
         mc:Ignorable="d" 
              d:DesignHeight="550" d:DesignWidth="1000"  
-        Title="Sound Vip Protected File"
-        Icon="Images/img1.png"
         WindowStyle="None"
         ResizeMode="NoResize" Width="1000" Height="600" >
     <Grid>
@@ -24,7 +22,7 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Grid.Column="1" Background="#EAEDF0" MouseLeftButtonDown="Grid_MouseLeftButtonDown">
-            <Label Content="Sound Vip Protected Agent" Width="166" HorizontalAlignment="Left" Margin="0,-6,0,0" FontWeight="Bold" FontStyle="Italic" Foreground="#9D9FA1"/>
+            <Label Content="Conference Record Safer" Width="172"  HorizontalAlignment="Left" Margin="0,-6,0,0" FontWeight="Bold" FontStyle="Italic" Foreground="#9D9FA1"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
                 <Button  Width="37" Click="MinimizeButton_Click" Style="{DynamicResource CustomBtnClose}">
                     <fa:ImageAwesome  Icon="WindowMinimize" Width="12" Foreground="Black"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -39,7 +37,7 @@
             <Grid Background="#3F8AFA" >
                 <Image Source="Images/fauget1.png" Margin="1,0,65,3"/>
                 <Label Content="Record" FontStyle="Italic" FontWeight="Bold" Foreground="Black" Margin="47,4,20,10"/>
-                <Label Content="Guard" FontStyle="Oblique" FontWeight="Bold" Foreground="White" Margin="60,21,0,0"/>
+                <Label Content="Safer" FontStyle="Oblique" FontWeight="Bold" Foreground="White" Margin="60,21,0,0"/>
             </Grid>
             <Grid Width="70" Height="70" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave">
                 <fa:ImageAwesome  Icon="UserSecret" Width="25" Foreground="White"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -69,8 +67,8 @@
 
             <ToggleButton x:Name="btLive" Margin="0,0,0,10" Click="btLive_Click"  Height="36" Style="{DynamicResource UserContainerMenu}">
                 <StackPanel Orientation="Horizontal">
-                    <fa:ImageAwesome Icon="Microphone" Height="20" Width="15" Foreground="White" Margin="0,0,10,0"/>
-                    <TextBlock Text="Live" VerticalAlignment="Center" Width="37"/>
+                    <fa:ImageAwesome Icon="Book" Height="20" Width="20" Foreground="White" Margin="0,0,10,0"/>
+                    <TextBlock Text="Text" VerticalAlignment="Center" Width="37"/>
                 </StackPanel>
             </ToggleButton>
 
@@ -112,24 +110,24 @@
                 </Grid.Background>
                 <!-- Menu StackPanel, ẩn ban đầu -->
                 <StackPanel Name="MenuPanel" Background="#52A0FF"  Panel.ZIndex="4" Margin="720,411,31,0" Visibility="Collapsed">
-                    <Button Height="40"  Margin="0,5,0,0" Name="btProfileUser" Style="{DynamicResource UserContainerMenuBtn}" Click="btProfileUser_Click">
+                    <ToggleButton Height="40"  Margin="0,5,0,0" Name="btProfileUser" Style="{DynamicResource UserContainerMenuTogBtn}" Click="btProfileUser_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <fa:ImageAwesome Icon="User" Height="20" Foreground="White" VerticalAlignment="Center" Margin="2,0,10,0"/>
                             <TextBlock Text="Profile" VerticalAlignment="Center" Foreground="White"/>
                         </StackPanel>
-                    </Button>
-                    <Button Height="40" Margin="0" Name="btInformationApp" Style="{DynamicResource UserContainerMenuBtn}" Click="btInformationApp_Click">
+                    </ToggleButton>
+                    <ToggleButton Height="40" Margin="0" Name="btInformationApp" Style="{DynamicResource UserContainerMenuTogBtn}" Click="btInformationApp_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <fa:ImageAwesome Icon="InfoCircle" Height="20" Foreground="White" VerticalAlignment="Center" Margin="2,0,10,0"/>
                             <TextBlock Text="Information" VerticalAlignment="Center" Foreground="White"/>
                         </StackPanel>
-                    </Button>
-                    <Button Height="40" Margin="0" Name="btContactApp" Style="{DynamicResource UserContainerMenuBtn}" Click="btContactApp_Click">
+                    </ToggleButton>
+                    <ToggleButton Height="40" Margin="0" Name="btContactApp" Style="{DynamicResource UserContainerMenuTogBtn}" Click="btContactApp_Click">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <fa:ImageAwesome Icon="FacebookSquare" Height="20" Foreground="Blue" VerticalAlignment="Center" Margin="2,0,10,0"/>
                             <TextBlock Text="Contact us..." VerticalAlignment="Center" Foreground="White"/>
                         </StackPanel>
-                    </Button>
+                    </ToggleButton>
                 </StackPanel>
 
                 <StackPanel Panel.ZIndex="4" Background="#367ADE" Margin="0,22,715,324" Visibility="Collapsed"  x:Name="InfoStackPanel">

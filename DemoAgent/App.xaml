@@ -35,6 +35,36 @@
 
                 </Style.Triggers>
             </Style>
+            <Style x:Key="UserContainerMenuTogBtn" TargetType="ToggleButton">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="white"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <!-- Bỏ viền -->
+                <Setter Property="Padding" Value="10,5"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <!-- Thay đổi con trỏ khi hover -->
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border Background="{TemplateBinding Background}" 
+          CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <!-- Hiệu ứng hover -->
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#367ADE"/>
+                        <!-- Màu nền khi hover -->
+                        <Setter Property="Foreground" Value="White"/>
+                    </Trigger>
+
+                </Style.Triggers>
+            </Style>
             <Style x:Key="CustomBtnClose" TargetType="Button">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground" Value="Black"/>
