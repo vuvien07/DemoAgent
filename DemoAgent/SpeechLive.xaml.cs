@@ -148,31 +148,8 @@ namespace DemoAgent
                 chunk = audioBuffer.GetRange(0, bufferSize).ToArray();
                 //ProcessBitAudio(chunk, e);
                 audioBuffer.RemoveRange(0, bufferSize);
-
-                // Thêm chunk vào hàng đợi để xử lý sau
             }
         }
-
-        /*
-         * Xu ly nhieu xung quanh cua khoi byte
-         */
-        //private void ProcessBitAudio(byte[] chunk, WaveInEventArgs e)
-        //{
-        //    for (int i = 0; i < e.BytesRecorded; i += 2)
-        //    {
-        //        short sample = BitConverter.ToInt16(e.Buffer, i);
-        //        float sampleFloat = sample / 32768f;
-
-        //        float filteredSample = _filterSound.ProcessSample(sampleFloat);
-        //        float highPassFilteredSample = _butterworthHighPassFilter.Apply(filteredSample);
-
-        //        short filteredSampleShort = (short)(highPassFilteredSample * 32768f);
-        //        byte[] filteredSampleBytes = BitConverter.GetBytes(filteredSampleShort);
-
-        //        chunk[i] = filteredSampleBytes[0];
-        //        chunk[i + 1] = filteredSampleBytes[1];
-        //    }
-        //}
 
         private void WaveIn_RecordingStopped(object sender, StoppedEventArgs e)
         {
@@ -210,13 +187,13 @@ namespace DemoAgent
         /*
          * Ham khoi tao moi truong python
          */
-        private string performRecognizeText(byte[] audioBytes)
+        private string performRecognizeText(string wavPath)
         {
             string result = "";
             using (PyModule pyModule = Py.CreateScope())
             {
                 // Định nghĩa biến trong phạm vi
-                pyModule.Set("audio_bytes", audioBytes);
+                pyModule.Set("wavPath", wavPath);
                 pyModule.Set("model", app._model);
                 pyModule.Set("processor", app._processor);
                 pyModule.Set("device", app._device);
@@ -230,23 +207,17 @@ import torch
 import numpy as np
 
 
-def audio_transcribe(audio_bytes, model, processor, device, sampling_rate=16000):
+def audio_transcribe(wavPath, model, processor, device):
     try:
         # Read audio from bytes
-        audio_data, sr = sf.read(
-            io.BytesIO(audio_bytes),
-            format='RAW',
-            channels=1,
-            samplerate=sampling_rate,
-            subtype='PCM_16'
-        )
+        audio_input, sample_rate = sf.read(wavPath)
 
         # Ensure that the audio has the correct sample rate
-        if sr != sampling_rate:
-            audio_data = librosa.resample(audio_data, orig_sr=sr, target_sr=sampling_rate)
+        if sample_rate != 16000:
+            audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
 
         # Preprocess input data
-        input_values = processor(audio_data, return_tensors=""pt"", padding=""longest"").input_values
+        input_values = processor(audio_input, return_tensors=""pt"", padding=""longest"").input_values
         input_values = input_values.to(device)
 
         # Predict with the model

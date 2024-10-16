@@ -31,7 +31,6 @@ namespace Services
         private string finalPath;
         private string _recordMode;
         private string transcriptionPath;
-        public MemoryStream audioStream = new MemoryStream();
 
         public string FinalePath { get => finalPath; set => finalPath = value; }
         public string RecordMode { get => _recordMode; set => _recordMode = value; }
@@ -69,9 +68,6 @@ namespace Services
             waveInEvent.DataAvailable += (s, e) =>
             {
                 fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
-                audioStream.Write(e.Buffer, 0, e.BytesRecorded);
-                fileWriter.Flush();
-                audioStream.Flush();
             };
             waveInEvent.StartRecording();
             isRecording = true;
@@ -92,15 +88,10 @@ namespace Services
                     if (File.Exists(finalePath))
                     {
                         string directoryPath = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-                        if (!Directory.Exists(directoryPath))
-                        {
-                            Directory.CreateDirectory(directoryPath);
-                        }
                         string fileName = System.IO.Path.GetFileNameWithoutExtension(finalePath);
                         string encryptedFileName = $"{fileName}.cnp";
                         string encryptedFilePath = Path.Combine(directoryPath, encryptedFileName);
                         UtilHelper.EncryptFile(finalePath, encryptedFilePath, account.PublicKey);
-                        File.Delete(finalePath);
                     }
                     var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
                     if (meeting != null)
