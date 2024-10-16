@@ -91,6 +91,7 @@ namespace DemoAgent
                         }
                         // Ẩn cửa sổ trước khi tắt
                         window.Visibility = Visibility.Hidden;
+                        app.nIcon.Visible = false;
 
                         // Thực hiện tắt Python đồng bộ trước khi shutdown ứng dụng
                         await ShutdownPythonAndApp(app);
