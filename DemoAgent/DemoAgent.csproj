@@ -24,6 +24,7 @@
   <ItemGroup>
     <None Remove="fullscreen_arrow_icon_263604 %281%29.ico" />
     <None Remove="Images\fauget.png" />
+    <None Remove="Images\fauget1.ico" />
     <None Remove="Images\fauget1.png" />
     <None Remove="Images\gm.png" />
     <None Remove="Images\gm2.png" />
@@ -35,6 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Images\fauget1.ico" />
     <Resource Include="Images\img1.png" />
   </ItemGroup>
 
