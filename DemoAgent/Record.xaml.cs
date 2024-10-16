@@ -3,6 +3,7 @@ using FontAwesome.WPF;
 using Models;
 using NAudio.Wave;
 using Python.Runtime;
+using Repositories;
 using Services;
 using System;
 using System.Collections.Generic;
@@ -42,7 +43,9 @@ namespace DemoAgent
         private bool isMeeting;
         private RecordService? recordService;
         private App app = System.Windows.Application.Current as App;
-       
+        private string wavFile = "";
+        private string transFile = "";
+
         public Record(Account account, bool isMeeting)
         {
             InitializeComponent();
@@ -89,8 +92,19 @@ namespace DemoAgent
             {
                 Directory.CreateDirectory(transcriptDirectory);
             }
-            string wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.wav";
-            string transFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.txt";
+            switch (recordService.RecordMode)
+            {
+                case "Manual":
+                    wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.wav";
+                    transFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.txt";
+                    break;
+                default:
+                    Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
+                    wavFile = $"{meet.Name}.wav";
+                    transFile = $"{meet.Name}.txt";
+                    break;
+            }
+            recordService.WavFile = wavFile;
             finalePath = System.IO.Path.Combine(recordDirectory, wavFile);
             transPath = System.IO.Path.Combine(transcriptDirectory, transFile);
             recordService.TranscriptionPath = System.IO.Path.Combine(transcriptDirectory, transFile);
@@ -201,6 +215,7 @@ namespace DemoAgent
             {
                 sw.WriteLine(transcript);
             }
+            recordService.audioStream?.Flush();
             LoadFiles();
         }
 
