@@ -150,7 +150,10 @@ namespace DemoAgent
             }
             return null;
         }
-
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close(); // Đóng cửa sổ
+        }
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Minimized; // Thu nhỏ cửa sổ
