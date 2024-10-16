@@ -104,7 +104,6 @@ namespace DemoAgent
                     transFile = $"{meet.Name}.txt";
                     break;
             }
-            recordService.WavFile = wavFile;
             finalePath = System.IO.Path.Combine(recordDirectory, wavFile);
             transPath = System.IO.Path.Combine(transcriptDirectory, transFile);
             recordService.TranscriptionPath = System.IO.Path.Combine(transcriptDirectory, transFile);

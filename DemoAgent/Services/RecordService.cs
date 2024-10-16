@@ -31,15 +31,12 @@ namespace Services
         private string finalPath;
         private string _recordMode;
         private string transcriptionPath;
-        private string wavFile;
         public MemoryStream audioStream = new MemoryStream();
 
         public string FinalePath { get => finalPath; set => finalPath = value; }
         public string RecordMode { get => _recordMode; set => _recordMode = value; }
 
         public string TranscriptionPath { get => transcriptionPath; set => transcriptionPath = value; }
-
-        public string WavFile { get => wavFile; set => wavFile = value; }
 
         public void InitializeService(Account account)
         {
@@ -99,7 +96,7 @@ namespace Services
                         {
                             Directory.CreateDirectory(directoryPath);
                         }
-                        string fileName = wavFile.Split(".")[0];
+                        string fileName = System.IO.Path.GetFileNameWithoutExtension(finalePath);
                         string encryptedFileName = $"{fileName}.cnp";
                         string encryptedFilePath = Path.Combine(directoryPath, encryptedFileName);
                         UtilHelper.EncryptFile(finalePath, encryptedFilePath, account.PublicKey);
