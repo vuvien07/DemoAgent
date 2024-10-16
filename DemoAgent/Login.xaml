@@ -23,7 +23,7 @@
                 <Button  Width="37" Click="MinimizeButton_Click" Style="{DynamicResource CustomBtnClose}">
                     <fa:ImageAwesome  Icon="WindowMinimize" Width="12" Foreground="Black"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
-                <Button Width="27" Style="{DynamicResource CustomBtnClose}" >
+                <Button Width="27"  Style="{DynamicResource CustomBtnClose}" >
                     <fa:ImageAwesome  Icon="Close" Width="12" Foreground="Black"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
             </StackPanel>
