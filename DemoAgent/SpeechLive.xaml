@@ -36,6 +36,7 @@
                         <ContextMenu>
                             <MenuItem Header="Open in Folder" Click="MenuItemOpenFolder_Click"/>
                             <MenuItem Header="Decode Text" Click="DecryptTextFile"/>
+                            <MenuItem Header="Delete " Click="MenuItemDeleteText_Click" />
 
                         </ContextMenu>
                     </ListView.ContextMenu>

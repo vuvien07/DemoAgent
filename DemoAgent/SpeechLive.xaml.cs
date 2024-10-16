@@ -31,15 +31,17 @@ using System.Windows.Threading;
 using Util;
 using Models;
 using static System.Net.WebRequestMethods;
+using System.Windows.Forms;
 
 namespace DemoAgent
 {
     /// <summary>
     /// Interaction logic for SpeechLive.xaml
     /// </summary>
-    public partial class SpeechLive : UserControl
+    public partial class SpeechLive : System.Windows.Controls.UserControl
     {
         private Models.Account account;
+        private List<TextFile> files;
 
         public SpeechLive(Models.Account account)
         {
@@ -141,6 +143,55 @@ namespace DemoAgent
                 }
             }
         }
+        private void MenuItemDeleteText_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedFile = lvTrans.SelectedValue as TextFile;
+
+            if (selectedFile != null)
+            {
+                try
+                {
+                    MessageBoxResult dialogResult = System.Windows.MessageBox.Show(
+                        $"Are you sure to delete this file at {selectedFile.Path}?",
+                        "Confirm",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+                    if (dialogResult == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            if (System.IO.File.Exists(selectedFile.Path))
+                            {
+                                string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
+                                if (!System.IO.File.Exists(directory))
+                                {
+                                    Directory.CreateDirectory(directory);
+                                }
+                                files = GetAllTextFilesInDirectory(directory);
+                                System.IO.File.Delete(selectedFile.Path);
+                                TextFile text = files.FirstOrDefault(f => f.Path == selectedFile.Path);
+                                if (text != null)
+                                {
+                                    files.Remove(text);
+                                }
+                            }
+                            Load();
+                            EventUtil.printNotice($"Remove file with path {selectedFile.Path} successfully!", MessageUtil.SUCCESS);
+                        }
+                        catch (Exception ex)
+                        {
+                            EventUtil.printNotice("An error occurred: " + ex.Message, MessageUtil.ERROR);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    EventUtil.printNotice("An unexpected error occurred: " + ex.Message, MessageUtil.ERROR);
+                }
+            }
+        }
+
         private void DecryptTextFile(object sender, RoutedEventArgs e)
         {
             var selectedFile = lvTrans.SelectedValue as TextFile;
