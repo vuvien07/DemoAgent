@@ -9,37 +9,47 @@
              d:DesignHeight="450" d:DesignWidth="800"  Loaded="UserControl_Loaded">
 <Grid Background="WhiteSmoke">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="150"/>
-            <ColumnDefinition Width="650"/>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="500"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <fa:FontAwesome Icon="Book"  FontSize="30" Margin="10,5,0,0" Foreground="Green"/>
+                <Label Content="Newly Transciption" HorizontalAlignment="Center" FontSize="20" FontWeight="SemiBold" />
+            </StackPanel>
+            <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Height="390">
+                <ListView x:Name="lvTrans" Width="290" BorderThickness="0" Background="Transparent" >
 
-            <Label Content="Press to Talk" HorizontalAlignment="Center" FontSize="20" FontWeight="SemiBold" Foreground="Green"/>
-            <Grid Height="500" VerticalAlignment="Top">
-                <Button Background="White" BorderBrush="Black" Width="84" Click="RecordButton_Click" Height="467">
-                    <Button.Template>
-                        <ControlTemplate TargetType="{x:Type Button}">
-                            <Grid>
-                                <Viewbox Margin="0,0,0,387">
-                                    <fa:ImageAwesome x:Name="IconImage" Icon="Microphone" VerticalAlignment="Top" HorizontalAlignment="Center" Height="15" Width="25"/>
-                                </Viewbox>
-                            </Grid>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-                <Label x:Name="TimerLabel" Content="00:00:00" FontSize="35" Height="54" Width="163" Margin="10,97,-23,349"/>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13"/>
+                                <TextBlock Text="{Binding Size}" FontStyle="Italic" FontSize="12"/>
+                                <TextBlock Text="{Binding Description}" FontSize="12"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Open in Folder" Click="MenuItemOpenFolder_Click"/>
+                            <MenuItem Header="Decode Text" />
 
-            </Grid>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                </ListView>
+            </ScrollViewer>
         </StackPanel>
         <StackPanel Grid.Row="0" Grid.Column="1">
-            <Grid>
-                <Label Content="Select input device for livestream" FontSize="20" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="30,0,0,0" FontWeight="Bold"/>
-                <ComboBox x:Name="DeviceCombobox" Width="299" HorizontalAlignment="Left" Margin="350,7,0,0" Height="30" DisplayMemberPath="ProductName" SelectedValuePath="Id" SelectedIndex="0"/>
-            </Grid>
-            <TextBox x:Name="ResultTextBox" Margin="0,20,0,10" Width="579" Height="284" TextWrapping="Wrap" AcceptsReturn="True"/>
+            <GroupBox Header="Text Speech Recognizer"  Width="auto" Height="400" Margin="0,0,10,0">
+                <GroupBox.Effect>
+                    <DropShadowEffect Color="Black" ShadowDepth="1" BlurRadius="3" Opacity="0.5"/>
+                </GroupBox.Effect>
+                <TextBox x:Name="ResultTextBox" Width="Auto" Height="auto" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"/>
+            </GroupBox>
+
         </StackPanel>
     </Grid>
 </UserControl>

@@ -17,7 +17,7 @@
         <StackPanel Grid.Row="0" Grid.Column="0">
             <StackPanel Orientation="Horizontal">
                 <fa:FontAwesome Icon="Folder" Foreground="Orange" FontSize="30" Margin="10,5,0,0"/>
-            <Label Content="Recently Recorded" FontSize="20" FontWeight="Bold"/>
+            <Label Content="Newly Record" FontSize="20" FontWeight="Bold"/>
             </StackPanel>
 
             <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Height="365">

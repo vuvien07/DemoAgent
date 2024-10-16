@@ -64,7 +64,7 @@ namespace DemoAgent
         private void btLive_Click(object sender, RoutedEventArgs e)
         {
             EnableButton(lsButton);
-            ContainerUser.Child = new SpeechLive();
+            ContainerUser.Child = new SpeechLive(account);
             DisableButton((ToggleButton)sender);
         }
 
