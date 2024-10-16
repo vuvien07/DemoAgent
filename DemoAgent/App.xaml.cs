@@ -27,7 +27,7 @@ namespace DemoAgent
         public dynamic? _processor;
         public dynamic? _model;
         public dynamic? _device;
-
+        public bool _isAutoClosing = false;
 
         public App()
         {
@@ -70,37 +70,39 @@ namespace DemoAgent
 
         public static async void Closing_Window(object sender, CancelEventArgs e)
         {
-            MessageBoxResult result = System.Windows.MessageBox.Show(
-                "Have order Done?", "Question",
-                MessageBoxButton.YesNo, MessageBoxImage.Question
-            );
-
-            if (result == MessageBoxResult.Yes)
+            var app = System.Windows.Application.Current as App;
+            if (!app._isAutoClosing)
             {
-                if (sender is Window window)
-                {
-                    var app = System.Windows.Application.Current as App;
-                    RecordService recordService = RecordService.Instance;
+                MessageBoxResult result = System.Windows.MessageBox.Show(
+                    "Have order Done?", "Question",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question
+                );
 
-                    // Dừng ghi âm nếu đang ghi
-                    if (app?.account != null && recordService.IsRecording())
+                if (result == MessageBoxResult.Yes)
+                {
+                    if (sender is Window window)
                     {
-                        recordService.StopRecording(recordService.FinalePath, app.account);
+                        RecordService recordService = RecordService.Instance;
+
+                        // Dừng ghi âm nếu đang ghi
+                        if (app?.account != null && recordService.IsRecording())
+                        {
+                            recordService.StopRecording(recordService.FinalePath, app.account);
+                        }
+                        // Ẩn cửa sổ trước khi tắt
+                        window.Visibility = Visibility.Hidden;
+
+                        // Thực hiện tắt Python đồng bộ trước khi shutdown ứng dụng
+                        await ShutdownPythonAndApp(app);
                     }
-
-                    // Ẩn cửa sổ trước khi tắt
-                    window.Visibility = Visibility.Hidden;
-
-                    // Thực hiện tắt Python đồng bộ trước khi shutdown ứng dụng
-                    await ShutdownPythonAndApp(app);
                 }
-            }
-            else
-            {
-                if (sender is Window window)
+                else
                 {
-                    e.Cancel = true;
-                    window.Visibility = Visibility.Hidden;
+                    if (sender is Window window)
+                    {
+                        e.Cancel = true;
+                        window.Visibility = Visibility.Hidden;
+                    }
                 }
             }
         }

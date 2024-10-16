@@ -98,7 +98,9 @@ namespace DemoAgent
                     Window currentWindow = Window.GetWindow(this);
                     if (currentWindow != null)
                     {
+                        (System.Windows.Application.Current as App)._isAutoClosing = true;
                         currentWindow.Close();
+                        (System.Windows.Application.Current as App)._isAutoClosing = false;
                     }
                     user.Show();
                 }
@@ -147,11 +149,6 @@ namespace DemoAgent
                 }
             }
             return null;
-        }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close(); // Đóng cửa sổ
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)

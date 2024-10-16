@@ -141,7 +141,7 @@ namespace DemoAgent
                 }
             }
         }
-        private void DecryptWavFile(object sender, RoutedEventArgs e)
+        private void DecryptTextFile(object sender, RoutedEventArgs e)
         {
             var selectedFile = lvTrans.SelectedValue as TextFile;
             if (selectedFile != null)

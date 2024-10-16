@@ -220,6 +220,8 @@ namespace DemoAgent
 
         private void StopRecord()
         {
+            string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
+            string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
             updateIcon(FontAwesomeIcon.Microphone);
             StopMonitoring();
             recordService.StopRecording(finalePath, account);
@@ -243,7 +245,14 @@ namespace DemoAgent
             {
                 sw.WriteLine(transcript);
             }
+            string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(finalePath)}.cnp";
+            string encryptedWavPath = System.IO.Path.Combine(recordDirectory, encryptedWavName);
+            string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(transPath)}.cnp";
+            string encryptedTransPath = System.IO.Path.Combine(transcriptDirectory, encryptedTransName);
+            UtilHelper.EncryptFile(finalePath, encryptedWavPath, account.PublicKey);
+            UtilHelper.EncryptFile(transPath, encryptedTransPath, account.PublicKey);
             File.Delete(finalePath);
+            File.Delete(transPath);
             LoadFiles();
         }
 

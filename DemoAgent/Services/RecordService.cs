@@ -109,7 +109,7 @@ namespace Services
             FinalePath = finalPath;
         }
 
-        public void StopRecording(string finalePath, Account account)
+        public void StopRecording(string finalePath ,Account account)
         {
             if (isRecording)
             {
@@ -128,7 +128,6 @@ namespace Services
                         }
                         string encryptedFileName = $"{Path.GetFileName(finalePath)}.cnp";
                         string encryptedFilePath = Path.Combine(directoryPath, encryptedFileName);                        
-                        UtilHelper.EncryptFile(finalePath, encryptedFilePath, account.PublicKey);
                     }
                     var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
                     if (meeting != null)
@@ -258,6 +257,7 @@ namespace Services
                 EventUtil.printNotice("An error occured!", MessageUtil.ERROR);
             }
         }
+
 
         private string FormatFileSize(long bytes)
         {
