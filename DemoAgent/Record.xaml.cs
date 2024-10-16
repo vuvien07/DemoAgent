@@ -52,7 +52,7 @@ namespace DemoAgent
             InitializeComponent();
             this.account = account;
             this.isMeeting = isMeeting;
-            if(recordService == null)
+            if (recordService == null)
             {
                 recordService = RecordService.Instance;
                 recordService.InitializeService(account);
@@ -81,11 +81,11 @@ namespace DemoAgent
         {
             string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             if (!Directory.Exists(directory))
-            if (recordService.IsRecording())
-            {
-                StopRecord();
-                return;
-            }
+                if (recordService.IsRecording())
+                {
+                    StopRecord();
+                    return;
+                }
             updateIcon(FontAwesomeIcon.Square);
             string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
@@ -113,7 +113,7 @@ namespace DemoAgent
                 return;
             }
             updateIcon(FontAwesomeIcon.Square);
-            if(!Directory.Exists(transcriptDirectory))
+            if (!Directory.Exists(transcriptDirectory))
             {
                 Directory.CreateDirectory(transcriptDirectory);
             }
@@ -276,7 +276,7 @@ namespace DemoAgent
             lvRecordings.ItemsSource = files;
         }
 
-      
+
 
         private void DecryptWavFile(object sender, RoutedEventArgs e)
         {
@@ -420,6 +420,8 @@ namespace DemoAgent
                 {
                     EventUtil.printNotice("Đã xảy ra lỗi!", MessageUtil.ERROR);
                 }
+            }
+        }
         private string performRecognizeText(string wavPath)
         {
             string result = "";
@@ -485,6 +487,5 @@ def audio_transcribe(wavPath, model, processor, device):
             }
             return result;
         }
-
     }
 }

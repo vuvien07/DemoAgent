@@ -53,14 +53,6 @@ namespace DemoAgent
             ContainerUser.Child = new UserCrypto(account);
         }
 
-        private void btExit_Click(object sender, RoutedEventArgs e)
-        {
-            var loginWindow = new Login();
-            loginWindow.Show();
-            this.Close();
-        }
-
-
         private void btLive_Click(object sender, RoutedEventArgs e)
         {
             EnableButton(lsButton);
@@ -70,12 +62,14 @@ namespace DemoAgent
 
         private void btRecord_Click(object sender, RoutedEventArgs e)
         {
+            EnableButton(lsButton);
             ContainerUser.Child = new Record(account, false);
             DisableButton((ToggleButton)sender);
         }
 
         private void btCryto_Click(object sender, RoutedEventArgs e)
         {
+            EnableButton(lsButton);
             var userCrypto = new UserCrypto(account);
             ContainerUser.Child = userCrypto;
             DisableButton((ToggleButton)sender);
@@ -83,6 +77,7 @@ namespace DemoAgent
 
         private void btMeeting_Click(object sender, RoutedEventArgs e)
         {
+            EnableButton(lsButton);
             var meeting = new UserMeeting(account);
             ContainerUser.Child = meeting;
             DisableButton((ToggleButton)sender);
@@ -93,7 +88,6 @@ namespace DemoAgent
             var userContainer = new UserContainer(account);
             userContainer.ContainerUser.Child = new Record(account, true);
             recordService.RecordMode = MessageUtil.RECORD_AUTOMATIC;
-            UncheckOthers(userContainer.btRecord);
             userContainer.Show();
             Record record = userContainer.ContainerUser.Child as Record;
             Dispatcher.BeginInvoke(new Action(() =>
