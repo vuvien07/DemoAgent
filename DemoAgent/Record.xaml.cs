@@ -434,62 +434,9 @@ namespace DemoAgent
         private string performRecognizeText(string wavPath)
         {
             string result = "";
-            using (PyModule pyModule = Py.CreateScope())
-            {
-                // Định nghĩa biến trong phạm vi
-                pyModule.Set("wavPath", wavPath);
-                pyModule.Set("model", app._model);
-                pyModule.Set("processor", app._processor);
-                pyModule.Set("device", app._device);
+            dynamic transcription = app._speechRecogition.audio_transcribe(wavPath, app._model, app._processor, app._device);
 
-                // Chạy mã Python
-                pyModule.Exec(@"
-import io
-import soundfile as sf
-import librosa
-import torch
-import numpy as np
-
-
-def audio_transcribe(wavPath, model, processor, device):
-    try:
-        # Read audio from bytes
-        audio_input, sample_rate = sf.read(wavPath)
-
-        # Ensure that the audio has the correct sample rate
-        if sample_rate != 16000:
-            audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
-
-        # Preprocess input data
-        input_values = processor(audio_input, return_tensors=""pt"", padding=""longest"").input_values
-        input_values = input_values.to(device)
-
-        # Predict with the model
-        with torch.no_grad():
-            logits = model(input_values).logits
-
-        predicted_ids = torch.argmax(logits, dim=-1)
-
-        # Decode to text
-        transcription = processor.decode(predicted_ids[0])
-
-        return transcription
-    
-    except ValueError as ve:
-        print(f""ValueError: {ve} - Ensure the audio bytes are valid and compatible."")
-    except RuntimeError as re:
-        print(f""RuntimeError: {re} - Check the model and processor compatibility with the input."")
-    except Exception as e:
-        print(f""An error occurred during audio transcription: {e} - Audio input type: {type(audio_input)}"")
-                            ");
-                PyObject[] pyObject = new PyObject[] {
-                                pyModule.GetAttr("wavPath"),
-                                pyModule.GetAttr("model"),
-                                pyModule.GetAttr("processor"),
-                                pyModule.GetAttr("device")
-                            };
-                var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
-                if (transcription != null && transcription is PyObject)
+            if (transcription != null && transcription is PyObject) {
                 {
                     result = transcription.As<string>();
                 }
