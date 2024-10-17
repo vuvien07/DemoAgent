@@ -263,8 +263,6 @@ namespace DemoAgent
                 updateIcon(FontAwesomeIcon.Square);
                 TimerLabel.Content = $"{timeSpan.ToString(@"hh\:mm\:ss")}";
             }
-           
-
         }
 
         private void LoadFiles()
