@@ -88,7 +88,7 @@ namespace DemoAgent
                         // Dừng ghi âm nếu đang ghi
                         if (app?.account != null && recordService.IsRecording())
                         {
-                            recordService.StopRecording(recordService.FinalePath, app.account);
+                            recordService.StopRecording(recordService.finalPath, app.account);
                         }
                         // Ẩn cửa sổ trước khi tắt
                         window.Visibility = Visibility.Hidden;
