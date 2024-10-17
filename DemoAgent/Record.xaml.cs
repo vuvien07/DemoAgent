@@ -43,7 +43,7 @@ namespace DemoAgent
         private List<WavFile> files;
         private Queue<string> processWavFiles;
         private bool isMeeting;
-        private RecordService? recordService;
+        private RecordService? recordService = RecordService.Instance;
         private App app = System.Windows.Application.Current as App;
         private string wavFile = "";
         private string transFile = "";
@@ -53,13 +53,9 @@ namespace DemoAgent
             InitializeComponent();
             this.account = account;
             this.isMeeting = isMeeting;
-            if (recordService == null)
-            {
-                recordService = RecordService.Instance;
-                recordService.InitializeService(account);
-            }
             if (!recordService.IsRecording())
             {
+                recordService.InitializeService(account);
                 timeSpan = TimeSpan.Zero;
                 recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             }
@@ -135,7 +131,7 @@ namespace DemoAgent
             }
             finalePath = System.IO.Path.Combine(recordDirectory, wavFile);
             transPath = System.IO.Path.Combine(transcriptDirectory, transFile);
-            recordService.transcriptionPath = System.IO.Path.Combine(transcriptDirectory, transFile);
+            recordService.finalPath= System.IO.Path.Combine(transcriptDirectory, transFile);
             StartMonitoring();
             recordService.StartRecording(0, finalePath);
             UpdateUIForRecording();
