@@ -30,7 +30,6 @@ namespace Services
         private Account account;
         private string finalPath;
         private string _recordMode;
-        public int _count = 0;
         public event Action<float[]> OnAudioDataAvailable;
         private string transcriptionPath;
 
@@ -128,7 +127,7 @@ namespace Services
                         }
                         string encryptedFileName = $"{Path.GetFileName(finalePath)}.cnp";
                         string encryptedFilePath = Path.Combine(directoryPath, encryptedFileName);                        
-                    }
+                    }             
                     var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
                     if (meeting != null)
                     {
@@ -137,9 +136,8 @@ namespace Services
                         DemoAgentContext.INSTANCE.SaveChanges();
                     }
                     EventUtil.printNotice($"Save record successfully!", MessageUtil.SUCCESS);
-                    _count = 0;
-                }catch(Exception) {
-                    EventUtil.printNotice($"An error occured while save recording file!", MessageUtil.ERROR);
+                }catch(Exception e) {
+                    EventUtil.printNotice($"An error occured while save recording file! {e.Message}", MessageUtil.ERROR);
                 }
             }
         }

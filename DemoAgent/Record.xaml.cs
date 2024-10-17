@@ -42,7 +42,7 @@ namespace DemoAgent
         private string transPath;
         private List<WavFile> files;
         private bool isMeeting;
-        private RecordService? recordService;
+        private RecordService? recordService = RecordService.Instance;
         private App app = System.Windows.Application.Current as App;
         private string wavFile = "";
         private string transFile = "";
@@ -52,13 +52,9 @@ namespace DemoAgent
             InitializeComponent();
             this.account = account;
             this.isMeeting = isMeeting;
-            if (recordService == null)
-            {
-                recordService = RecordService.Instance;
-                recordService.InitializeService(account);
-            }
             if (!recordService.IsRecording())
             {
+                recordService.InitializeService(account);
                 timeSpan = TimeSpan.Zero;
                 recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             }
@@ -267,10 +263,7 @@ namespace DemoAgent
                 updateIcon(FontAwesomeIcon.Square);
                 TimerLabel.Content = $"{timeSpan.ToString(@"hh\:mm\:ss")}";
             }
-            else
-            {
-                StopRecord();
-            }
+           
 
         }
 
