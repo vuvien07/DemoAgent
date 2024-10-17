@@ -33,6 +33,7 @@ namespace Services
         public int _count = 0;
         public event Action<float[]> OnAudioDataAvailable;
         private string transcriptionPath;
+        private string hh;
 
         public string FinalePath { get => finalPath; set => finalPath = value; }
         public string RecordMode { get => _recordMode; set => _recordMode = value; }
