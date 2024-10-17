@@ -47,7 +47,6 @@ namespace DemoAgent
         private App app = System.Windows.Application.Current as App;
         private string wavFile = "";
         private string transFile = "";
-        public static string fff;
 
         public Record(Account account, bool isMeeting)
         {
