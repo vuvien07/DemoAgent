@@ -46,7 +46,7 @@
         <StackPanel Grid.Row="0" Grid.Column="1">
             <GroupBox Header="Text Speech Recognizer"  Width="auto" Height="400" Margin="0,0,10,0">
                 <GroupBox.Effect>
-                    <DropShadowEffect Color="Black" ShadowDepth="1" BlurRadius="3" Opacity="0.5"/>
+                    <DropShadowEffect Color="Black" ShadowDepth="1" BlurRadius="0" Opacity="0.1"/>
                 </GroupBox.Effect>
                 <TextBox x:Name="ResultTextBox" Width="Auto" Height="auto" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"/>
             </GroupBox>

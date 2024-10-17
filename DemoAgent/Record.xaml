@@ -36,7 +36,6 @@
                         <ContextMenu>
                             <MenuItem Header="Open in Folder" Click="MenuItemOpenFolder_Click"/>
                             <MenuItem Header="Decode" Click="DecryptWavFile"/>
-                            <MenuItem Header="Speech to Text"/>
                             <MenuItem Header="Delete" Click="MenuItemDelete_Click" />
                         </ContextMenu>
                     </ListView.ContextMenu>

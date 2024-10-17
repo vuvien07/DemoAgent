@@ -24,6 +24,7 @@ namespace DemoAgent
     /// </summary>
     public partial class UserMeeting : UserControl
     {
+        private NewMeeting newMeetingWindow;
         private Account account;
         public UserMeeting(Account account)
         {
@@ -33,15 +34,23 @@ namespace DemoAgent
             if(meeting != null)
             {
                 btMeeting.IsEnabled = false;
-
+                btMeeting.Background = Brushes.Gray;
+                btMeeting.BorderBrush = Brushes.LightGray;
             }
         }
         private void btMeeting_Click(object sender, RoutedEventArgs e)
         {
-           
-                new NewMeeting(account).Show();
-           
-            
+            if (newMeetingWindow == null || !newMeetingWindow.IsVisible)
+            {
+                newMeetingWindow = new NewMeeting(account);
+                newMeetingWindow.Show();
+            }
+            else
+            {
+                newMeetingWindow.Focus();
+            }
+
+
         }
         private void Load()
         {
