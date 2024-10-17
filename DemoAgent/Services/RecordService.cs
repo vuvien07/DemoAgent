@@ -22,7 +22,22 @@ namespace Services
 {
     public class RecordService
     {
-        public static RecordService Instance = new RecordService();
+        private static RecordService instance;
+        private static readonly object instanceLock = new object();
+        public static RecordService Instance
+        {
+            get
+            {
+                lock (instanceLock)
+                {
+                    if (instance == null)
+                    {
+                        instance = new RecordService();
+                    }
+                    return instance;
+                }
+            }
+        }
 
         private WaveFileWriter fileWriter;
         private bool isRecording;
@@ -34,8 +49,8 @@ namespace Services
         public string _recordMode;
         public int _count = 0;
         public event Action<float[]> OnAudioDataAvailable;
-        private string transcriptionPath;
-        private string hh;
+        public string transcriptionPath;
+
 
         //gioi han so luong tac vu chay dong thoi tren CPU
         private SemaphoreSlim semaphore = new SemaphoreSlim(3);
@@ -93,7 +108,10 @@ namespace Services
                 }
 
                 // Ghi dữ liệu đã điều chỉnh vào file
-                fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+                if (fileWriter != null) // Kiểm tra để tránh lỗi NullReferenceException
+                {
+                    fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+                }
 
                 // Chuyển đổi mẫu thành giá trị float (-1 đến 1) để xử lý thêm
                 float[] audioData = new float[e.BytesRecorded / 2];
@@ -120,16 +138,6 @@ namespace Services
                     waveInEvent.Dispose();
                     fileWriter.Dispose();
                     isRecording = false;
-                    if (File.Exists(finalePath))
-                    {
-                        string directoryPath = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-                        if (!Directory.Exists(directoryPath))
-                        {
-                            Directory.CreateDirectory(directoryPath);
-                        }
-                        string encryptedFileName = $"{Path.GetFileName(finalePath)}.cnp";
-                        string encryptedFilePath = Path.Combine(directoryPath, encryptedFileName);                        
-                    }
                     var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
                     if (meeting != null)
                     {
@@ -138,7 +146,6 @@ namespace Services
                         DemoAgentContext.INSTANCE.SaveChanges();
                     }
                     EventUtil.printNotice($"Save record successfully!", MessageUtil.SUCCESS);
-                    _count = 0;
                 }catch(Exception) {
                     EventUtil.printNotice($"An error occured while save recording file!", MessageUtil.ERROR);
                 }

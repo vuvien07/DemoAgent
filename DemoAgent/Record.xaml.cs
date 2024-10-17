@@ -38,15 +38,11 @@ namespace DemoAgent
         private DispatcherTimer timer;
         private TimeSpan timeSpan = TimeSpan.Zero;
         private Account account;
-        private string finalePath;
-        private string transPath;
         private List<WavFile> files;
         private Queue<string> processWavFiles;
         private bool isMeeting;
         private RecordService? recordService = RecordService.Instance;
         private App app = System.Windows.Application.Current as App;
-        private string wavFile = "";
-        private string transFile = "";
 
         public Record(Account account, bool isMeeting)
         {
@@ -58,9 +54,9 @@ namespace DemoAgent
                 recordService.InitializeService(account);
                 timeSpan = TimeSpan.Zero;
                 recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
+                recordService.OnAudioDataAvailable += OnAudioDataAvailable;
             }
-            recordService.OnAudioDataAvailable += OnAudioDataAvailable;
-            if(processWavFiles == null)
+            if (processWavFiles == null)
             {
                 processWavFiles = new Queue<string>();
             }
@@ -79,13 +75,12 @@ namespace DemoAgent
 
         private void RecordButton_Click(object sender, RoutedEventArgs e)
         {
-            string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-            if (!Directory.Exists(directory))
-                if (recordService.IsRecording())
-                {
-                    StopRecord();
-                    return;
-                }
+            string wavFile, transFile = "";
+            if (recordService.IsRecording())
+            {
+                StopRecord();
+                return;
+            }
             updateIcon(FontAwesomeIcon.Square);
             string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
@@ -105,13 +100,6 @@ namespace DemoAgent
                     wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}";
                 }
             }
-
-            finalePath = System.IO.Path.Combine(directory, wavFile);
-            if (recordService.IsRecording())
-            {
-                StopRecord();
-                return;
-            }
             updateIcon(FontAwesomeIcon.Square);
             if (!Directory.Exists(transcriptDirectory))
             {
@@ -129,11 +117,10 @@ namespace DemoAgent
                     transFile = $"{meet.Name}.txt";
                     break;
             }
-            finalePath = System.IO.Path.Combine(recordDirectory, wavFile);
-            transPath = System.IO.Path.Combine(transcriptDirectory, transFile);
-            recordService.finalPath= System.IO.Path.Combine(transcriptDirectory, transFile);
+            recordService.finalPath = System.IO.Path.Combine(recordDirectory, wavFile);
+            recordService.transcriptionPath = System.IO.Path.Combine(transcriptDirectory, transFile);
             StartMonitoring();
-            recordService.StartRecording(0, finalePath);
+            recordService.StartRecording(0, recordService.finalPath);
             UpdateUIForRecording();
         }
 
@@ -185,35 +172,29 @@ namespace DemoAgent
         {
             Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
             String time = "";
-            switch (recordService._recordMode)
+            if (recordService._recordMode == "Automatic")
             {
-                case "Automatic":
-                    if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) && recordService.IsRecording())
-                    {
-                        timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
-                        recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                        TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
-                        FileNameLable.Content = wavFile;
-                        ;
-                    }
-                    else
-                    {
-                        StopRecord();
-                    }
-                    break;
-                case "Manual":
-                    if (recordService.IsRecording())
-                    {
-                        timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
-                        recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                        TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
-                        FileNameLable.Content = wavFile;
-                    }
-                    else
-                    {
-                        StopRecord();
-                    }
-                    break;
+                if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) && recordService.IsRecording())
+                {
+                    timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
+                    recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
+                    TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                    FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
+                }
+                else
+                {
+                    RecordButton_Click(null, null);
+                }
+            }
+            else
+            {
+                if (recordService.IsRecording())
+                {
+                    timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
+                    recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
+                    TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                    FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
+                }
             }
 
         }
@@ -223,8 +204,7 @@ namespace DemoAgent
             string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
             updateIcon(FontAwesomeIcon.Microphone);
-            StopMonitoring();
-            recordService.StopRecording(finalePath, account);
+            recordService.StopRecording(recordService.finalPath, account);
             recordService.StopWatching();
             TimerLabel.Content = $"00:00:00";
             timeSpan = TimeSpan.Zero;
@@ -239,13 +219,28 @@ namespace DemoAgent
                     DemoAgentContext.INSTANCE.Meetings.Update(meeting);
                     DemoAgentContext.INSTANCE.SaveChanges();
                 }
+                isMeeting = false;
             }
-            processWavFiles.Enqueue(finalePath);
-            Task.Run(() =>
+            string result = performRecognizeText(recordService.finalPath, app);
+            using (StreamWriter sw = new StreamWriter(recordService.transcriptionPath))
             {
-                recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
-            });
+                sw.WriteLine(result);
+            }
+            string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.finalPath)}.cnp";
+            string encryptedWavPath = System.IO.Path.Combine(recordDirectory, encryptedWavName);
+            string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.transcriptionPath)}.cnp";
+            string encryptedTransPath = System.IO.Path.Combine(transcriptDirectory, encryptedTransName);
+            UtilHelper.EncryptFile(recordService.finalPath, encryptedWavPath, account.PublicKey);
+            UtilHelper.EncryptFile(recordService.transcriptionPath, encryptedTransPath, account.PublicKey);
+            File.Delete(recordService.finalPath);
+            File.Delete(recordService.transcriptionPath);
+            //processWavFiles.Enqueue(finalePath);
+            //Task.Run(() =>
+            //{
+            //    recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
+            //});
             LoadFiles();
+            StopMonitoring();
         }
 
         private void UpdateUIForRecording()
@@ -253,15 +248,10 @@ namespace DemoAgent
             if (recordService.IsRecording()
                 || recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account))
             {
-                finalePath = recordService.finalPath;
                 timeSpan = (TimeSpan)recordService.GetTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"));
                 StartMonitoring();
                 updateIcon(FontAwesomeIcon.Square);
                 TimerLabel.Content = $"{timeSpan.ToString(@"hh\:mm\:ss")}";
-            }
-            else
-            {
-                StopRecord();
             }
 
         }
@@ -422,6 +412,72 @@ namespace DemoAgent
                     EventUtil.printNotice("Đã xảy ra lỗi!", MessageUtil.ERROR);
                 }
             }
+        }
+
+        private string performRecognizeText(string wavPath, dynamic app)
+        {
+            string result = "";
+            using (PyModule pyModule = Py.CreateScope())
+            {
+                // Định nghĩa biến trong phạm vi
+                pyModule.Set("wavPath", wavPath);
+                pyModule.Set("model", app._model);
+                pyModule.Set("processor", app._processor);
+                pyModule.Set("device", app._device);
+
+                // Chạy mã Python
+                pyModule.Exec(@"
+import io
+import soundfile as sf
+import librosa
+import torch
+import numpy as np
+
+
+def audio_transcribe(wavPath, model, processor, device):
+    try:
+        # Read audio from bytes
+        audio_input, sample_rate = sf.read(wavPath)
+
+        # Ensure that the audio has the correct sample rate
+        if sample_rate != 16000:
+            audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
+
+        # Preprocess input data
+        input_values = processor(audio_input, return_tensors=""pt"", padding=""longest"").input_values
+        input_values = input_values.to(device)
+
+        # Predict with the model
+        with torch.no_grad():
+            logits = model(input_values).logits
+
+        predicted_ids = torch.argmax(logits, dim=-1)
+
+        # Decode to text
+        transcription = processor.decode(predicted_ids[0])
+
+        return transcription
+    
+    except ValueError as ve:
+        print(f""ValueError: {ve} - Ensure the audio bytes are valid and compatible."")
+    except RuntimeError as re:
+        print(f""RuntimeError: {re} - Check the model and processor compatibility with the input."")
+    except Exception as e:
+        print(f""An error occurred during audio transcription: {e} - Audio input type: {type(audio_input)}"")
+                            ");
+                PyObject[] pyObject = new PyObject[] {
+                                pyModule.GetAttr("wavPath"),
+                                pyModule.GetAttr("model"),
+                                pyModule.GetAttr("processor"),
+                                pyModule.GetAttr("device")
+                            };
+                var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
+                if (transcription != null && transcription is PyObject)
+                {
+                    result = transcription.As<string>();
+                }
+            }
+            return result;
         }
     }
 }
