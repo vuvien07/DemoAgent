@@ -28,6 +28,7 @@ namespace DemoAgent
         public dynamic? _model;
         public dynamic? _device;
         public bool _isAutoClosing = false;
+        public dynamic? _speechRecogition;
 
         public App()
         {
@@ -87,7 +88,7 @@ namespace DemoAgent
                         // Dừng ghi âm nếu đang ghi
                         if (app?.account != null && recordService.IsRecording())
                         {
-                            recordService.StopRecording(recordService.FinalePath, app.account);
+                            recordService.StopRecording(recordService.finalPath, app.account);
                         }
                         // Ẩn cửa sổ trước khi tắt
                         window.Visibility = Visibility.Hidden;
@@ -139,13 +140,13 @@ namespace DemoAgent
             {
                 using (Py.GIL())
                 {
-                    dynamic speechRecogitionScript = Py.Import("SpeechRecognition");
+                    _speechRecogition = Py.Import("SpeechRecognition");
                     if (_model is null)
-                        _model = speechRecogitionScript.load_model();
+                        _model = _speechRecogition.load_model();
                     if (_processor is null)
-                        _processor = speechRecogitionScript.load_processor();
+                        _processor = _speechRecogition.load_processor();
                     if (_device is null)
-                        _device = speechRecogitionScript.get_device();
+                        _device = _speechRecogition.get_device();
                 }
             }
             catch (Exception ex)

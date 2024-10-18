@@ -1,7 +1,9 @@
-﻿using DemoAgent.Util;
+﻿using DemoAgent;
+using DemoAgent.Util;
 using Models;
 using NAudio.MediaFoundation;
 using NAudio.Wave;
+using Python.Runtime;
 using Repositories;
 using System;
 using System.Collections.Generic;
@@ -20,7 +22,22 @@ namespace Services
 {
     public class RecordService
     {
-        public static RecordService Instance = new RecordService();
+        private static RecordService instance;
+        private static readonly object instanceLock = new object();
+        public static RecordService Instance
+        {
+            get
+            {
+                lock (instanceLock)
+                {
+                    if (instance == null)
+                    {
+                        instance = new RecordService();
+                    }
+                    return instance;
+                }
+            }
+        }
 
         private WaveFileWriter fileWriter;
         private bool isRecording;
@@ -28,15 +45,16 @@ namespace Services
         private ManagementEventWatcher connectWatcher;
         private ManagementEventWatcher disconnectWatcher;
         private Account account;
-        private string finalPath;
-        private string _recordMode;
+        public string finalPath;
+        public string _recordMode;
+        public int _count = 0;
         public event Action<float[]> OnAudioDataAvailable;
-        private string transcriptionPath;
+        public string transcriptionPath;
 
-        public string FinalePath { get => finalPath; set => finalPath = value; }
-        public string RecordMode { get => _recordMode; set => _recordMode = value; }
 
-        public string TranscriptionPath { get => transcriptionPath; set => transcriptionPath = value; }
+        //gioi han so luong tac vu chay dong thoi tren CPU
+        private SemaphoreSlim semaphore = new SemaphoreSlim(3);
+        private static object _lock = new object();
 
         public void InitializeService(Account account)
         {
@@ -90,8 +108,11 @@ namespace Services
                 }
 
                 // Ghi dữ liệu đã điều chỉnh vào file
-                fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
-                
+                if (fileWriter != null) // Kiểm tra để tránh lỗi NullReferenceException
+                {
+                    fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+                }
+
                 // Chuyển đổi mẫu thành giá trị float (-1 đến 1) để xử lý thêm
                 float[] audioData = new float[e.BytesRecorded / 2];
                 for (int index = 0; index < e.BytesRecorded; index += 2)
@@ -105,7 +126,6 @@ namespace Services
             waveInEvent.StartRecording();
             isRecording = true;
             finalPath = outputFilePath;
-            FinalePath = finalPath;
         }
 
         public void StopRecording(string finalePath ,Account account)
@@ -116,18 +136,10 @@ namespace Services
                 {
                     waveInEvent.StopRecording();
                     waveInEvent.Dispose();
+                    waveInEvent = null;
                     fileWriter.Dispose();
+                    fileWriter = null;
                     isRecording = false;
-                    if (File.Exists(finalePath))
-                    {
-                        string directoryPath = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-                        if (!Directory.Exists(directoryPath))
-                        {
-                            Directory.CreateDirectory(directoryPath);
-                        }
-                        string encryptedFileName = $"{Path.GetFileName(finalePath)}.cnp";
-                        string encryptedFilePath = Path.Combine(directoryPath, encryptedFileName);                        
-                    }             
                     var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
                     if (meeting != null)
                     {
@@ -136,8 +148,8 @@ namespace Services
                         DemoAgentContext.INSTANCE.SaveChanges();
                     }
                     EventUtil.printNotice($"Save record successfully!", MessageUtil.SUCCESS);
-                }catch(Exception e) {
-                    EventUtil.printNotice($"An error occured while save recording file! {e.Message}", MessageUtil.ERROR);
+                }catch(Exception) {
+                    EventUtil.printNotice($"An error occured while save recording file!", MessageUtil.ERROR);
                 }
             }
         }
@@ -279,6 +291,120 @@ namespace Services
             {
                 return $"{bytes} bytes";
             }
+        }
+
+        public async Task processTranscribeAllWavFiles(Queue<string> processWavFiles, string transDir, dynamic app)
+        {
+           List<Task> tasks = new List<Task>();
+           while(processWavFiles.Count > 0)
+           {
+                string wavPath = processWavFiles.Dequeue();
+                string transFile = $"{Path.GetFileNameWithoutExtension(wavPath)}.txt";
+                string transPath = Path.Combine(transDir, transFile);
+                tasks.Add(ProcessSingleFileAsync(wavPath, transPath, app));
+           }
+           await Task.WhenAll(tasks);
+        }
+
+        // Hàm xử lý từng file WAV
+        private async Task ProcessSingleFileAsync(string wavPath, string transPath, dynamic app)
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                string result = await Task.Run(() =>
+                {
+                    dynamic transcription = performRecognizeText(wavPath, app._model, app._processor, app._device);
+
+                    return transcription;
+                });
+
+                await Task.Run(() =>
+                {
+                    using (StreamWriter sw = new StreamWriter(transPath))
+                    {
+                        sw.WriteLine(result);
+                    }
+                    string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(wavPath)}.cnp";
+                    string encryptedWavPath = System.IO.Path.Combine(Path.GetDirectoryName(wavPath), encryptedWavName);
+                    string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(transPath)}.cnp";
+                    string encryptedTransPath = System.IO.Path.Combine(Path.GetDirectoryName(transPath), encryptedTransName);
+                    UtilHelper.EncryptFile(finalPath, encryptedWavPath, account.PublicKey);
+                    UtilHelper.EncryptFile(transPath, encryptedTransPath, account.PublicKey);
+                    File.Delete(finalPath);
+                    File.Delete(transPath);
+                });
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        private string performRecognizeText(string wavPath, dynamic model, dynamic processor, dynamic device)
+        {
+            string result = "";
+            using (PyModule pyModule = Py.CreateScope())
+            {
+                // Định nghĩa biến trong phạm vi
+                pyModule.Set("wavPath", wavPath);
+                pyModule.Set("model", model);
+                pyModule.Set("processor", processor);
+                pyModule.Set("device", device);
+
+                // Chạy mã Python
+                pyModule.Exec(@"
+import io
+import soundfile as sf
+import librosa
+import torch
+import numpy as np
+
+
+def audio_transcribe(wavPath, model, processor, device):
+    try:
+        # Read audio from bytes
+        audio_input, sample_rate = sf.read(wavPath)
+
+        # Ensure that the audio has the correct sample rate
+        if sample_rate != 16000:
+            audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
+
+        # Preprocess input data
+        input_values = processor(audio_input, return_tensors=""pt"", padding=""longest"").input_values
+        input_values = input_values.to(device)
+
+        # Predict with the model
+        with torch.no_grad():
+            logits = model(input_values).logits
+
+        predicted_ids = torch.argmax(logits, dim=-1)
+
+        # Decode to text
+        transcription = processor.decode(predicted_ids[0])
+
+        return transcription
+    
+    except ValueError as ve:
+        print(f""ValueError: {ve} - Ensure the audio bytes are valid and compatible."")
+    except RuntimeError as re:
+        print(f""RuntimeError: {re} - Check the model and processor compatibility with the input."")
+    except Exception as e:
+        print(f""An error occurred during audio transcription: {e} - Audio input type: {type(audio_input)}"")
+                            ");
+                PyObject[] pyObject = new PyObject[] {
+                                pyModule.GetAttr("wavPath"),
+                                pyModule.GetAttr("model"),
+                                pyModule.GetAttr("processor"),
+                                pyModule.GetAttr("device")
+                            };
+                var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
+                if (transcription != null && transcription is PyObject)
+                {
+                    result = transcription.As<string>();
+                }
+            }
+            return result;
         }
     }
 }
