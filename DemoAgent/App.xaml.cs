@@ -132,7 +132,7 @@ namespace DemoAgent
 
         private void InitializePython()
         {
-            //Environment.SetEnvironmentVariable("PYTHONNET_PYDLL", @"C:\Program Files\Python312\python312.dll");
+            Environment.SetEnvironmentVariable("PYTHONNET_PYDLL", @"C:\Users\boot.AI\AppData\Local\Programs\Python\Python39\Python39.dll");
             if (!PythonEngine.IsInitialized)
                 PythonEngine.Initialize();
             try
