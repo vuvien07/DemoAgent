@@ -136,7 +136,9 @@ namespace Services
                 {
                     waveInEvent.StopRecording();
                     waveInEvent.Dispose();
+                    waveInEvent = null;
                     fileWriter.Dispose();
+                    fileWriter = null;
                     isRecording = false;
                     var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
                     if (meeting != null)

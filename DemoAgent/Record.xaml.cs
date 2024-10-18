@@ -183,7 +183,10 @@ namespace DemoAgent
                 }
                 else
                 {
-                    RecordButton_Click(null, null);
+                    if (isMeeting)
+                    {
+                        StopRecord();
+                    }
                 }
             }
             else
@@ -241,6 +244,7 @@ namespace DemoAgent
             //});
             LoadFiles();
             StopMonitoring();
+            return;
         }
 
         private void UpdateUIForRecording()
