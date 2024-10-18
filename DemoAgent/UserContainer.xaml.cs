@@ -87,7 +87,7 @@ namespace DemoAgent
         {
             var userContainer = new UserContainer(account);
             userContainer.ContainerUser.Child = new Record(account, true);
-            recordService.RecordMode = MessageUtil.RECORD_AUTOMATIC;
+            recordService._recordMode = MessageUtil.RECORD_AUTOMATIC;
             userContainer.Show();
             Record record = userContainer.ContainerUser.Child as Record;
             Dispatcher.BeginInvoke(new Action(() =>

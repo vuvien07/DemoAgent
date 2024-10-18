@@ -38,32 +38,28 @@ namespace DemoAgent
         private DispatcherTimer timer;
         private TimeSpan timeSpan = TimeSpan.Zero;
         private Account account;
-        private string finalePath;
-        private string transPath;
         private List<WavFile> files;
+        private Queue<string> processWavFiles;
         private bool isMeeting;
-        private RecordService? recordService;
+        private RecordService? recordService = RecordService.Instance;
         private App app = System.Windows.Application.Current as App;
-        private string wavFile = "";
-        private string transFile = "";
 
         public Record(Account account, bool isMeeting)
         {
             InitializeComponent();
             this.account = account;
             this.isMeeting = isMeeting;
-            if (recordService == null)
-            {
-                recordService = RecordService.Instance;
-                recordService.InitializeService(account);
-            }
             if (!recordService.IsRecording())
             {
+                recordService.InitializeService(account);
                 timeSpan = TimeSpan.Zero;
                 recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             }
             recordService.OnAudioDataAvailable += OnAudioDataAvailable;
-
+            if (processWavFiles == null)
+            {
+                processWavFiles = new Queue<string>();
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -79,13 +75,12 @@ namespace DemoAgent
 
         private void RecordButton_Click(object sender, RoutedEventArgs e)
         {
-            string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-            if (!Directory.Exists(directory))
-                if (recordService.IsRecording())
-                {
-                    StopRecord();
-                    return;
-                }
+            string wavFile, transFile = "";
+            if (recordService.IsRecording())
+            {
+                StopRecord();
+                return;
+            }
             updateIcon(FontAwesomeIcon.Square);
             string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
@@ -95,7 +90,7 @@ namespace DemoAgent
             }
             if (!recordService.IsRecording())
             {
-                if (recordService.RecordMode == "Automatic")
+                if (recordService._recordMode == "Automatic")
                 {
                     Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
                     wavFile = $"{meet.Name}";
@@ -105,19 +100,12 @@ namespace DemoAgent
                     wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}";
                 }
             }
-
-            finalePath = System.IO.Path.Combine(directory, wavFile);
-            if (recordService.IsRecording())
-            {
-                StopRecord();
-                return;
-            }
             updateIcon(FontAwesomeIcon.Square);
             if (!Directory.Exists(transcriptDirectory))
             {
                 Directory.CreateDirectory(transcriptDirectory);
             }
-            switch (recordService.RecordMode)
+            switch (recordService._recordMode)
             {
                 case "Manual":
                     wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.wav";
@@ -129,11 +117,10 @@ namespace DemoAgent
                     transFile = $"{meet.Name}.txt";
                     break;
             }
-            finalePath = System.IO.Path.Combine(recordDirectory, wavFile);
-            transPath = System.IO.Path.Combine(transcriptDirectory, transFile);
-            recordService.TranscriptionPath = System.IO.Path.Combine(transcriptDirectory, transFile);
+            recordService.finalPath = System.IO.Path.Combine(recordDirectory, wavFile);
+            recordService.transcriptionPath = System.IO.Path.Combine(transcriptDirectory, transFile);
             StartMonitoring();
-            recordService.StartRecording(0, finalePath);
+            recordService.StartRecording(0, recordService.finalPath);
             UpdateUIForRecording();
         }
 
@@ -185,51 +172,49 @@ namespace DemoAgent
         {
             Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
             String time = "";
-            switch (recordService.RecordMode)
+            if (recordService._recordMode == "Automatic")
             {
-                case "Automatic":
-                    if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) && recordService.IsRecording())
-                    {
-                        timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
-                        recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                        TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
-                        FileNameLable.Content = wavFile;
-                        ;
-                    }
-                    else
-                    {
-                        StopRecord();
-                    }
-                    break;
-                case "Manual":
-                    if (recordService.IsRecording())
-                    {
-                        timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
-                        recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                        TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
-                        FileNameLable.Content = wavFile;
-                    }
-                    else
+                if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) && recordService.IsRecording())
+                {
+                    timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
+                    recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
+                    TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                    FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
+                }
+                else
+                {
+                    if (isMeeting && timer != null)
                     {
                         StopRecord();
                     }
-                    break;
+                }
+            }
+            else
+            {
+                if (recordService.IsRecording())
+                {
+                    timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
+                    recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
+                    TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                    FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
+                }
             }
 
         }
 
         private void StopRecord()
         {
+            TimerLabel.Content = "Record time:";
+            FileNameLable.Content = "";
+            timeSpan = TimeSpan.Zero;
+            recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
+            StopMonitoring();
             string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
             updateIcon(FontAwesomeIcon.Microphone);
-            StopMonitoring();
-            recordService.StopRecording(finalePath, account);
+            recordService.StopRecording(recordService.finalPath, account);
             recordService.StopWatching();
-            TimerLabel.Content = $"00:00:00";
-            timeSpan = TimeSpan.Zero;
-            recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-            recordService.RecordMode = MessageUtil.RECORD_MANUAL;
+            recordService._recordMode = MessageUtil.RECORD_MANUAL;
             if (isMeeting)
             {
                 var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
@@ -239,20 +224,26 @@ namespace DemoAgent
                     DemoAgentContext.INSTANCE.Meetings.Update(meeting);
                     DemoAgentContext.INSTANCE.SaveChanges();
                 }
+                isMeeting = false;
             }
-            string transcript = performRecognizeText(finalePath);
-            using (StreamWriter sw = new StreamWriter(transPath))
+            //string result = performRecognizeText(recordService.finalPath, app);
+            //using (StreamWriter sw = new StreamWriter(recordService.transcriptionPath))
+            //{
+            //    sw.WriteLine(result);
+            //}
+            //string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.finalPath)}.cnp";
+            //string encryptedWavPath = System.IO.Path.Combine(recordDirectory, encryptedWavName);
+            //string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.transcriptionPath)}.cnp";
+            //string encryptedTransPath = System.IO.Path.Combine(transcriptDirectory, encryptedTransName);
+            //UtilHelper.EncryptFile(recordService.finalPath, encryptedWavPath, account.PublicKey);
+            //UtilHelper.EncryptFile(recordService.transcriptionPath, encryptedTransPath, account.PublicKey);
+            //File.Delete(recordService.finalPath);
+            //File.Delete(recordService.transcriptionPath);
+            processWavFiles.Enqueue(recordService.finalPath);
+            Task.Run(() =>
             {
-                sw.WriteLine(transcript);
-            }
-            string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(finalePath)}.cnp";
-            string encryptedWavPath = System.IO.Path.Combine(recordDirectory, encryptedWavName);
-            string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(transPath)}.cnp";
-            string encryptedTransPath = System.IO.Path.Combine(transcriptDirectory, encryptedTransName);
-            UtilHelper.EncryptFile(finalePath, encryptedWavPath, account.PublicKey);
-            UtilHelper.EncryptFile(transPath, encryptedTransPath, account.PublicKey);
-            File.Delete(finalePath);
-            File.Delete(transPath);
+                recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
+            });
             LoadFiles();
         }
 
@@ -261,15 +252,11 @@ namespace DemoAgent
             if (recordService.IsRecording()
                 || recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account))
             {
-                finalePath = recordService.FinalePath;
                 timeSpan = (TimeSpan)recordService.GetTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"));
                 StartMonitoring();
                 updateIcon(FontAwesomeIcon.Square);
-                TimerLabel.Content = $"{timeSpan.ToString(@"hh\:mm\:ss")}";
-            }
-            else
-            {
-                StopRecord();
+                TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
             }
 
         }
@@ -431,7 +418,8 @@ namespace DemoAgent
                 }
             }
         }
-        private string performRecognizeText(string wavPath)
+
+        private string performRecognizeText(string wavPath, dynamic app)
         {
             string result = "";
             using (PyModule pyModule = Py.CreateScope())

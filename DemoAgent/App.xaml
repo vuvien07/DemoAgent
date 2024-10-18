@@ -5,6 +5,82 @@
              >
     <Application.Resources>
         <ResourceDictionary>
+            <Style x:Key="CustomButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="#0091FF"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="Padding" Value="10,5"/>
+                <Setter Property="BorderBrush" Value="#3F8AFA"/>
+                <Setter Property="BorderThickness" Value="2"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="Black" BlurRadius="10" ShadowDepth="4" Opacity="0.5"/>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="DarkBlue"/>
+                        <Setter Property="Foreground" Value="LightBlue"/>
+                        <Setter Property="Effect">
+                            <Setter.Value>
+                                <DropShadowEffect Color="Black" BlurRadius="15" ShadowDepth="6" Opacity="0.7"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <Style TargetType="ListView" x:Key="ListViewStyle">
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="BorderBrush" Value="White"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="FontFamily" Value="Segoe UI"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Foreground" Value="Black"/>
+            </Style>
+
+            <!-- Style cho GridViewColumnHeader -->
+            <Style TargetType="GridViewColumnHeader" x:Key="GridViewHeaderStyle">
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="Padding" Value="5,3"/>
+                <Setter Property="Background" Value="LightGray"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Height" Value="30"/>
+                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                <Setter Property="BorderBrush" Value="Gray"/>
+            </Style>
+
+            <!-- Style cho các hàng của ListView -->
+            <Style TargetType="ListViewItem" x:Key="ListViewItemStyle">
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="Padding" Value="5"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Style.Triggers>
+                    <!-- Style khi hover vào một hàng -->
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="LightBlue"/>
+                    </Trigger>
+                    <!-- Style khi một hàng được chọn -->
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="LightGreen"/>
+                        <Setter Property="Foreground" Value="Black"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
             <Style x:Key="UserContainerMenuBtn" TargetType="Button">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="FontWeight" Value="Bold"/>
