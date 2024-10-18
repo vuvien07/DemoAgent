@@ -54,8 +54,8 @@ namespace DemoAgent
                 recordService.InitializeService(account);
                 timeSpan = TimeSpan.Zero;
                 recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                recordService.OnAudioDataAvailable += OnAudioDataAvailable;
             }
+            recordService.OnAudioDataAvailable += OnAudioDataAvailable;
             if (processWavFiles == null)
             {
                 processWavFiles = new Queue<string>();
@@ -183,7 +183,7 @@ namespace DemoAgent
                 }
                 else
                 {
-                    if (isMeeting)
+                    if (isMeeting && timer != null)
                     {
                         StopRecord();
                     }
@@ -204,14 +204,16 @@ namespace DemoAgent
 
         private void StopRecord()
         {
+            TimerLabel.Content = "Record time:";
+            FileNameLable.Content = "";
+            timeSpan = TimeSpan.Zero;
+            recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
+            StopMonitoring();
             string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
             updateIcon(FontAwesomeIcon.Microphone);
             recordService.StopRecording(recordService.finalPath, account);
             recordService.StopWatching();
-            TimerLabel.Content = $"00:00:00";
-            timeSpan = TimeSpan.Zero;
-            recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             recordService._recordMode = MessageUtil.RECORD_MANUAL;
             if (isMeeting)
             {
@@ -243,8 +245,6 @@ namespace DemoAgent
             //    recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
             //});
             LoadFiles();
-            StopMonitoring();
-            return;
         }
 
         private void UpdateUIForRecording()
@@ -255,7 +255,8 @@ namespace DemoAgent
                 timeSpan = (TimeSpan)recordService.GetTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"));
                 StartMonitoring();
                 updateIcon(FontAwesomeIcon.Square);
-                TimerLabel.Content = $"{timeSpan.ToString(@"hh\:mm\:ss")}";
+                TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
             }
 
         }
