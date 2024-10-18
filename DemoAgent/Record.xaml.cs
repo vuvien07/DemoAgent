@@ -240,11 +240,23 @@ namespace DemoAgent
             //File.Delete(recordService.finalPath);
             //File.Delete(recordService.transcriptionPath);
             processWavFiles.Enqueue(recordService.finalPath);
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
+                try
+                {
+                    await recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        LoadFiles();
+                    });
+                }
+                catch (Exception ex)
+                {
+                    // Xử lý ngoại lệ nếu cần
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
             });
-            LoadFiles();
+
         }
 
         private void UpdateUIForRecording()
