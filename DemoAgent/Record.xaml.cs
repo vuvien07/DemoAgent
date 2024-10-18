@@ -158,14 +158,19 @@ namespace DemoAgent
             {
                 DeviceCombobox.ItemsSource = recordService.GetDevices();
             });
+            LoadFiles();
+
         }
 
         private void OnDeviceDisconnected(EventArrivedEventArgs e)
         {
             Dispatcher.Invoke(() =>
             {
+
                 DeviceCombobox.ItemsSource = recordService.GetDevices();
             });
+            LoadFiles();
+
         }
 
         private void Timer_Tick(object sender, EventArgs e)
