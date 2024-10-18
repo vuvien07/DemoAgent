@@ -226,24 +226,24 @@ namespace DemoAgent
                 }
                 isMeeting = false;
             }
-            string result = performRecognizeText(recordService.finalPath, app);
-            using (StreamWriter sw = new StreamWriter(recordService.transcriptionPath))
-            {
-                sw.WriteLine(result);
-            }
-            string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.finalPath)}.cnp";
-            string encryptedWavPath = System.IO.Path.Combine(recordDirectory, encryptedWavName);
-            string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.transcriptionPath)}.cnp";
-            string encryptedTransPath = System.IO.Path.Combine(transcriptDirectory, encryptedTransName);
-            UtilHelper.EncryptFile(recordService.finalPath, encryptedWavPath, account.PublicKey);
-            UtilHelper.EncryptFile(recordService.transcriptionPath, encryptedTransPath, account.PublicKey);
-            File.Delete(recordService.finalPath);
-            File.Delete(recordService.transcriptionPath);
-            //processWavFiles.Enqueue(finalePath);
-            //Task.Run(() =>
+            //string result = performRecognizeText(recordService.finalPath, app);
+            //using (StreamWriter sw = new StreamWriter(recordService.transcriptionPath))
             //{
-            //    recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
-            //});
+            //    sw.WriteLine(result);
+            //}
+            //string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.finalPath)}.cnp";
+            //string encryptedWavPath = System.IO.Path.Combine(recordDirectory, encryptedWavName);
+            //string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.transcriptionPath)}.cnp";
+            //string encryptedTransPath = System.IO.Path.Combine(transcriptDirectory, encryptedTransName);
+            //UtilHelper.EncryptFile(recordService.finalPath, encryptedWavPath, account.PublicKey);
+            //UtilHelper.EncryptFile(recordService.transcriptionPath, encryptedTransPath, account.PublicKey);
+            //File.Delete(recordService.finalPath);
+            //File.Delete(recordService.transcriptionPath);
+            processWavFiles.Enqueue(recordService.finalPath);
+            Task.Run(() =>
+            {
+                recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
+            });
             LoadFiles();
         }
 

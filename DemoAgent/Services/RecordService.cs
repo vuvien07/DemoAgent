@@ -24,6 +24,7 @@ namespace Services
     {
         private static RecordService instance;
         private static readonly object instanceLock = new object();
+        private static readonly object pythonLock = new object();
         public static RecordService Instance
         {
             get
@@ -312,12 +313,13 @@ namespace Services
             await semaphore.WaitAsync();
             try
             {
-                string result = await Task.Run(() =>
-                {
-                    dynamic transcription = performRecognizeText(wavPath, app._model, app._processor, app._device);
+                //string result = await Task.Run(() =>
+                //{
+                //    dynamic transcription = performRecognizeText(wavPath, app._model, app._processor, app._device);
 
-                    return transcription;
-                });
+                //    return transcription;
+                //});
+                string result = await performRecognizeText(wavPath, app._model, app._processor, app._device);
 
                 await Task.Run(() =>
                 {
@@ -329,9 +331,9 @@ namespace Services
                     string encryptedWavPath = System.IO.Path.Combine(Path.GetDirectoryName(wavPath), encryptedWavName);
                     string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(transPath)}.cnp";
                     string encryptedTransPath = System.IO.Path.Combine(Path.GetDirectoryName(transPath), encryptedTransName);
-                    UtilHelper.EncryptFile(finalPath, encryptedWavPath, account.PublicKey);
+                    UtilHelper.EncryptFile(wavPath, encryptedWavPath, account.PublicKey);
                     UtilHelper.EncryptFile(transPath, encryptedTransPath, account.PublicKey);
-                    File.Delete(finalPath);
+                    File.Delete(wavPath);
                     File.Delete(transPath);
                 });
             }
@@ -341,19 +343,22 @@ namespace Services
             }
         }
 
-        private string performRecognizeText(string wavPath, dynamic model, dynamic processor, dynamic device)
+        private async Task<string> performRecognizeText(string wavPath, dynamic model, dynamic processor, dynamic device)
         {
-            string result = "";
-            using (PyModule pyModule = Py.CreateScope())
+            return await Task<string>.Run(() =>
             {
-                // Định nghĩa biến trong phạm vi
-                pyModule.Set("wavPath", wavPath);
-                pyModule.Set("model", model);
-                pyModule.Set("processor", processor);
-                pyModule.Set("device", device);
+                lock (pythonLock)
+                {
+                    using (PyModule pyModule = Py.CreateScope())
+                    {
+                        // Định nghĩa biến trong phạm vi
+                        pyModule.Set("wavPath", wavPath);
+                        pyModule.Set("model", model);
+                        pyModule.Set("processor", processor);
+                        pyModule.Set("device", device);
 
-                // Chạy mã Python
-                pyModule.Exec(@"
+                        // Chạy mã Python
+                        pyModule.Exec(@"
 import io
 import soundfile as sf
 import librosa
@@ -392,19 +397,18 @@ def audio_transcribe(wavPath, model, processor, device):
     except Exception as e:
         print(f""An error occurred during audio transcription: {e} - Audio input type: {type(audio_input)}"")
                             ");
-                PyObject[] pyObject = new PyObject[] {
+                        PyObject[] pyObject = new PyObject[] {
                                 pyModule.GetAttr("wavPath"),
                                 pyModule.GetAttr("model"),
                                 pyModule.GetAttr("processor"),
                                 pyModule.GetAttr("device")
                             };
-                var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
-                if (transcription != null && transcription is PyObject)
-                {
-                    result = transcription.As<string>();
+                        var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
+
+                        return transcription.As<string>();
+                    }
                 }
-            }
-            return result;
+            });
         }
     }
 }
