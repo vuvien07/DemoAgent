@@ -243,14 +243,9 @@ namespace DemoAgent
                 }
                 catch (Exception ex)
                 {
-                    // Xử lý ngoại lệ nếu cần
-                    Console.WriteLine($"Error: {ex.Message}");
+                    EventUtil.printNotice($"Error: {ex.Message}", MessageUtil.ERROR);
                 }
             });
-            //_ = Task.Run(() =>
-            //{
-            //    OnProcessAudioTranscribe(recordService.finalPath);
-            //}).ConfigureAwait(false);
 
         }
 

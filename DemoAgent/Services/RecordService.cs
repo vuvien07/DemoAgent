@@ -330,7 +330,7 @@ namespace Services
             await semaphore.WaitAsync();
             try
             {
-                OnProcessAudioTranscribe?.Invoke(wavPath);
+                OnProcessAudioTranscribe?.Invoke(Path.GetFileName(wavPath));
                 string result = await performRecognizeText(wavPath, app._model, app._processor, app._device);
                 await Task.Run(() =>
                 {
