@@ -7,6 +7,7 @@ using Python.Runtime;
 using Repositories;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Globalization;
 using System.IO;
@@ -23,13 +24,12 @@ namespace Services
     public class RecordService
     {
         private static RecordService instance;
-        private static readonly object instanceLock = new object();
-        private static readonly object pythonLock = new object();
+        private static object _lock = new object();
         public static RecordService Instance
         {
             get
             {
-                lock (instanceLock)
+                lock (_lock)
                 {
                     if (instance == null)
                     {
@@ -50,12 +50,14 @@ namespace Services
         public string _recordMode;
         public int _count = 0;
         public event Action<float[]> OnAudioDataAvailable;
+        public event Action<string> OnProcessAudioTranscribe;
+        public event Action OffNoticeLabel;
         public string transcriptionPath;
+        public bool _isCompleteTask = false;
 
 
         //gioi han so luong tac vu chay dong thoi tren CPU
         private SemaphoreSlim semaphore = new SemaphoreSlim(3);
-        private static object _lock = new object();
 
         public void InitializeService(Account account)
         {
@@ -297,17 +299,17 @@ namespace Services
             }
         }
 
-        public async Task processTranscribeAllWavFiles(Queue<string> processWavFiles, string transDir, dynamic app)
+        public async Task processTranscribeAllWavFiles(List<string> processWavFiles, string transDir, dynamic app)
         {
             List<Task> tasks = new List<Task>();
-            while (processWavFiles.Count > 0)
+            foreach (string file in processWavFiles)
             {
-                string wavPath = processWavFiles.Dequeue();
-                string transFile = $"{Path.GetFileNameWithoutExtension(wavPath)}.txt";
+                string transFile = $"{Path.GetFileNameWithoutExtension(file)}.txt";
                 string transPath = Path.Combine(transDir, transFile);
-                tasks.Add(ProcessSingleFileAsync(wavPath, transPath, app));
+                tasks.Add(ProcessSingleFileAsync(processWavFiles, file, transPath, app));
             }
             await Task.WhenAll(tasks);
+            OffNoticeLabel?.Invoke();
         }
         public void fileWavProcess(string wavPath)
         {
@@ -317,30 +319,31 @@ namespace Services
                 string encryptedWavPath = System.IO.Path.Combine(Path.GetDirectoryName(wavPath), encryptedWavName);
                 UtilHelper.EncryptFile(wavPath, encryptedWavPath, account.PublicKey);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ex.GetBaseException();
             }
         }
         // Hàm xử lý từng file WAV
-        private async Task ProcessSingleFileAsync(string wavPath, string transPath, dynamic app)
+        private async Task ProcessSingleFileAsync(List<string> processWavFiles, string wavPath, string transPath, dynamic app)
         {
             await semaphore.WaitAsync();
             try
             {
+                OnProcessAudioTranscribe?.Invoke(wavPath);
                 string result = await performRecognizeText(wavPath, app._model, app._processor, app._device);
-
                 await Task.Run(() =>
                 {
                     using (StreamWriter sw = new StreamWriter(transPath))
                     {
                         sw.WriteLine(result);
-                    }               
+                    }
                     string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(transPath)}.cnp";
                     string encryptedTransPath = System.IO.Path.Combine(Path.GetDirectoryName(transPath), encryptedTransName);
                     UtilHelper.EncryptFile(transPath, encryptedTransPath, account.PublicKey);
                     File.Delete(transPath);
                     File.Delete(wavPath);
+                    processWavFiles.Remove(wavPath);
                 });
             }
             finally
@@ -353,7 +356,7 @@ namespace Services
         {
             return await Task<string>.Run(() =>
             {
-                lock (pythonLock)
+                lock (_lock)
                 {
                     using (PyModule pyModule = Py.CreateScope())
                     {
@@ -410,7 +413,7 @@ def audio_transcribe(wavPath, model, processor, device):
                                 pyModule.GetAttr("device")
                             };
                         var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
-
+                        _isCompleteTask = true;
                         return transcription.As<string>();
                     }
                 }
