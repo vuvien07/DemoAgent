@@ -229,29 +229,14 @@ namespace DemoAgent
                 }
                 isMeeting = false;
             }
-            //string result = performRecognizeText(recordService.finalPath, app);
-            //using (StreamWriter sw = new StreamWriter(recordService.transcriptionPath))
-            //{
-            //    sw.WriteLine(result);
-            //}
-            //string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.finalPath)}.cnp";
-            //string encryptedWavPath = System.IO.Path.Combine(recordDirectory, encryptedWavName);
-            //string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.transcriptionPath)}.cnp";
-            //string encryptedTransPath = System.IO.Path.Combine(transcriptDirectory, encryptedTransName);
-            //UtilHelper.EncryptFile(recordService.finalPath, encryptedWavPath, account.PublicKey);
-            //UtilHelper.EncryptFile(recordService.transcriptionPath, encryptedTransPath, account.PublicKey);
-            //File.Delete(recordService.finalPath);
-            //File.Delete(recordService.transcriptionPath);
             processWavFiles.Enqueue(recordService.finalPath);
+            recordService.fileWavProcess(recordService.finalPath);
+            LoadFiles();
             Task.Run(async () =>
             {
                 try
                 {
                     await recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
-                    App.Current.Dispatcher.Invoke(() =>
-                    {
-                        LoadFiles();
-                    });
                 }
                 catch (Exception ex)
                 {

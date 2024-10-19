@@ -79,6 +79,7 @@ namespace Services
 
         public void StartRecording(int selectedDevice, string outputFilePath)
         {
+            this.finalPath = outputFilePath;
             waveInEvent = new WaveInEvent
             {
                 DeviceNumber = selectedDevice,
@@ -129,7 +130,7 @@ namespace Services
             finalPath = outputFilePath;
         }
 
-        public void StopRecording(string finalePath ,Account account)
+        public void StopRecording(string finalePath, Account account)
         {
             if (isRecording)
             {
@@ -149,7 +150,9 @@ namespace Services
                         DemoAgentContext.INSTANCE.SaveChanges();
                     }
                     EventUtil.printNotice($"Save record successfully!", MessageUtil.SUCCESS);
-                }catch(Exception) {
+                }
+                catch (Exception)
+                {
                     EventUtil.printNotice($"An error occured while save recording file!", MessageUtil.ERROR);
                 }
             }
@@ -296,29 +299,35 @@ namespace Services
 
         public async Task processTranscribeAllWavFiles(Queue<string> processWavFiles, string transDir, dynamic app)
         {
-           List<Task> tasks = new List<Task>();
-           while(processWavFiles.Count > 0)
-           {
+            List<Task> tasks = new List<Task>();
+            while (processWavFiles.Count > 0)
+            {
                 string wavPath = processWavFiles.Dequeue();
                 string transFile = $"{Path.GetFileNameWithoutExtension(wavPath)}.txt";
                 string transPath = Path.Combine(transDir, transFile);
                 tasks.Add(ProcessSingleFileAsync(wavPath, transPath, app));
-           }
-           await Task.WhenAll(tasks);
+            }
+            await Task.WhenAll(tasks);
         }
-
+        public void fileWavProcess(string wavPath)
+        {
+            try
+            {
+                string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(wavPath)}.cnp";
+                string encryptedWavPath = System.IO.Path.Combine(Path.GetDirectoryName(wavPath), encryptedWavName);
+                UtilHelper.EncryptFile(wavPath, encryptedWavPath, account.PublicKey);
+            }
+            catch(Exception ex)
+            {
+                ex.GetBaseException();
+            }
+        }
         // Hàm xử lý từng file WAV
         private async Task ProcessSingleFileAsync(string wavPath, string transPath, dynamic app)
         {
             await semaphore.WaitAsync();
             try
             {
-                //string result = await Task.Run(() =>
-                //{
-                //    dynamic transcription = performRecognizeText(wavPath, app._model, app._processor, app._device);
-
-                //    return transcription;
-                //});
                 string result = await performRecognizeText(wavPath, app._model, app._processor, app._device);
 
                 await Task.Run(() =>
@@ -326,15 +335,12 @@ namespace Services
                     using (StreamWriter sw = new StreamWriter(transPath))
                     {
                         sw.WriteLine(result);
-                    }
-                    string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(wavPath)}.cnp";
-                    string encryptedWavPath = System.IO.Path.Combine(Path.GetDirectoryName(wavPath), encryptedWavName);
+                    }               
                     string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(transPath)}.cnp";
                     string encryptedTransPath = System.IO.Path.Combine(Path.GetDirectoryName(transPath), encryptedTransName);
-                    UtilHelper.EncryptFile(wavPath, encryptedWavPath, account.PublicKey);
                     UtilHelper.EncryptFile(transPath, encryptedTransPath, account.PublicKey);
-                    File.Delete(wavPath);
                     File.Delete(transPath);
+                    File.Delete(wavPath);
                 });
             }
             finally
