@@ -189,10 +189,7 @@ namespace DemoAgent
                 }
                 else
                 {
-                    if (isMeeting && timer != null)
-                    {
-                        StopRecord();
-                    }
+                    StopRecord();
                 }
             }
             else
@@ -210,8 +207,11 @@ namespace DemoAgent
 
         private void StopRecord()
         {
-            TimerLabel.Content = "Record time:";
-            FileNameLable.Content = "";
+            Dispatcher.Invoke(() =>
+            {
+                TimerLabel.Content = "Record time:";
+                FileNameLable.Content = "";
+            });
             timeSpan = TimeSpan.Zero;
             recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             StopMonitoring();
