@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Forms;
@@ -39,7 +40,7 @@ namespace DemoAgent
         private TimeSpan timeSpan = TimeSpan.Zero;
         private Account account;
         private List<WavFile> files;
-        private Queue<string> processWavFiles;
+        private List<string> processWavFiles;
         private bool isMeeting;
         private RecordService? recordService = RecordService.Instance;
         private App app = System.Windows.Application.Current as App;
@@ -58,7 +59,9 @@ namespace DemoAgent
             recordService.OnAudioDataAvailable += OnAudioDataAvailable;
             if (processWavFiles == null)
             {
-                processWavFiles = new Queue<string>();
+                recordService.OnProcessAudioTranscribe += OnProcessAudioTranscribe;
+                recordService.OffNoticeLabel += OffNoticeLabel;
+                processWavFiles = new List<string>();
             }
         }
 
@@ -226,10 +229,10 @@ namespace DemoAgent
                 }
                 isMeeting = false;
             }
-            processWavFiles.Enqueue(recordService.finalPath);
+            processWavFiles.Add(recordService.finalPath);
             recordService.fileWavProcess(recordService.finalPath);
             LoadFiles();
-            Task.Run(async () =>
+             Task.Run(async () =>
             {
                 try
                 {
@@ -241,7 +244,19 @@ namespace DemoAgent
                     Console.WriteLine($"Error: {ex.Message}");
                 }
             });
+            //_ = Task.Run(() =>
+            //{
+            //    OnProcessAudioTranscribe(recordService.finalPath);
+            //}).ConfigureAwait(false);
 
+        }
+
+        private void OffNoticeLabel()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                NoticeLable.Visibility = Visibility.Collapsed;
+            });
         }
 
         private void UpdateUIForRecording()
@@ -360,6 +375,15 @@ namespace DemoAgent
             };
 
             canvas.Children.Insert(0, background); // Đặt nền phía sau đường sóng âm
+        }
+
+        private void OnProcessAudioTranscribe(string fileName)
+        {
+                Dispatcher.Invoke(() =>
+                 {
+                     NoticeLable.Visibility = Visibility.Visible;
+                     ProcessWavLabel.Text = $"Processing transcribe audio for file {fileName}";
+                 });
         }
 
 

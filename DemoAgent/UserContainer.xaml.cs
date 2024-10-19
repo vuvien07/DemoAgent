@@ -34,6 +34,7 @@ namespace DemoAgent
         private Account account;
         private readonly RecordService? recordService;
         private List<ToggleButton> lsButton;
+        private Record? _recordInstance = null;
 
         public UserContainer(Account account)
         {
@@ -63,7 +64,16 @@ namespace DemoAgent
         private void btRecord_Click(object sender, RoutedEventArgs e)
         {
             EnableButton(lsButton);
-            ContainerUser.Child = new Record(account, false);
+            if (_recordInstance == null) // Check if the instance exists
+            {
+                _recordInstance = new Record(account, false); // Create only once
+                ContainerUser.Child = _recordInstance;
+            }
+            else
+            {
+                ContainerUser.Child = _recordInstance;
+            }
+
             DisableButton((ToggleButton)sender);
         }
 
