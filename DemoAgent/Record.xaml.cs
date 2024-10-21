@@ -501,6 +501,7 @@ def audio_transcribe(wavPath, model, processor, device):
                 if (transcription != null && transcription is PyObject)
                 {
                     result = transcription.As<string>();
+                    result = app._punctuationModel.restore_punctuation(result).As<string>();
                 }
             }
             return result;

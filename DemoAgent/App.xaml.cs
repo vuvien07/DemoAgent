@@ -29,6 +29,7 @@ namespace DemoAgent
         public dynamic? _device;
         public bool _isAutoClosing = false;
         public dynamic? _speechRecogition;
+        public dynamic? _punctuationModel;
 
         public App()
         {
@@ -147,6 +148,8 @@ namespace DemoAgent
                         _processor = _speechRecogition.load_processor();
                     if (_device is null)
                         _device = _speechRecogition.get_device();
+                    if(_punctuationModel is null)
+                        _punctuationModel = _speechRecogition.load_punctuation_model();
                 }
             }
             catch (Exception ex)

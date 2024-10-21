@@ -331,7 +331,7 @@ namespace Services
             try
             {
                 OnProcessAudioTranscribe?.Invoke(wavPath);
-                string result = await performRecognizeText(wavPath, app._model, app._processor, app._device);
+                string result = await performRecognizeText(wavPath, app._model, app._processor, app._device, app._punctuationModel);
                 await Task.Run(() =>
                 {
                     using (StreamWriter sw = new StreamWriter(transPath))
@@ -352,7 +352,7 @@ namespace Services
             }
         }
 
-        private async Task<string> performRecognizeText(string wavPath, dynamic model, dynamic processor, dynamic device)
+        private async Task<string> performRecognizeText(string wavPath, dynamic model, dynamic processor, dynamic device, dynamic punctuationModel)
         {
             return await Task<string>.Run(() =>
             {
@@ -365,7 +365,7 @@ namespace Services
                         pyModule.Set("model", model);
                         pyModule.Set("processor", processor);
                         pyModule.Set("device", device);
-
+                        pyModule.Set("punctuation_model", punctuationModel);
                         // Chạy mã Python
                         pyModule.Exec(@"
 import io
@@ -375,7 +375,7 @@ import torch
 import numpy as np
 
 
-def audio_transcribe(wavPath, model, processor, device):
+def audio_transcribe(wavPath, model, processor, device, punctuation_model):
     try:
         # Read audio from bytes
         audio_input, sample_rate = sf.read(wavPath)
@@ -383,21 +383,27 @@ def audio_transcribe(wavPath, model, processor, device):
         # Ensure that the audio has the correct sample rate
         if sample_rate != 16000:
             audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
+        chunk_size = 10 * 16000
+        transcripts = []
 
-        # Preprocess input data
-        input_values = processor(audio_input, return_tensors=""pt"", padding=""longest"").input_values
-        input_values = input_values.to(device)
+        for i in range(0, len(audio_input), chunk_size):
+            chunk = audio_input[i:i + chunk_size]
 
-        # Predict with the model
-        with torch.no_grad():
-            logits = model(input_values).logits
+            input_values = processor(chunk, return_tensors=""pt"", padding=""longest"").input_values
+            input_values = input_values.to(device)
 
-        predicted_ids = torch.argmax(logits, dim=-1)
+            with torch.no_grad():
+                logits = model(input_values).logits
 
-        # Decode to text
-        transcription = processor.decode(predicted_ids[0])
+            predicted_ids = torch.argmax(logits, dim=-1)
 
-        return transcription
+            transcription = processor.decode(predicted_ids[0])
+            transcripts.append(transcription)
+        
+        full_transcription = ' '.join(transcripts)
+
+        final_result = punctuation_model.restore_punctuation(full_transcription)
+        return final_result
     
     except ValueError as ve:
         print(f""ValueError: {ve} - Ensure the audio bytes are valid and compatible."")
@@ -410,7 +416,8 @@ def audio_transcribe(wavPath, model, processor, device):
                                 pyModule.GetAttr("wavPath"),
                                 pyModule.GetAttr("model"),
                                 pyModule.GetAttr("processor"),
-                                pyModule.GetAttr("device")
+                                pyModule.GetAttr("device"),
+                                pyModule.GetAttr("punctuation_model")
                             };
                         var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
                         _isCompleteTask = true;
