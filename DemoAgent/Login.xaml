@@ -17,7 +17,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid Grid.Row="0" Grid.Column="1" Background="#EAEDF0" MouseLeftButtonDown="Grid_MouseLeftButtonDown" Margin="0,0,10,0">
-            <Label Content="Conference Record Safer" Width="172"  HorizontalAlignment="Left" Margin="0,-6,0,0" FontWeight="Bold" FontStyle="Italic" Foreground="#9D9FA1"/>
+            <Label Content="Ghi Âm An Toàn" Width="172"  HorizontalAlignment="Left" Margin="0,-6,0,0" FontWeight="Bold" FontStyle="Italic" Foreground="#9D9FA1"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
                 <Button  Width="37" Click="MinimizeButton_Click" Style="{DynamicResource CustomBtnClose}">
