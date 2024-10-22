@@ -61,19 +61,18 @@ namespace DemoAgent
                 processWavFiles = new Queue<string>();
             }
         }
-
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             DeviceCombobox.ItemsSource = recordService.GetDevices();
             recordService.StartWatching(OnDeviceConnected, OnDeviceDisconnected);
-            if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) || recordService.IsRecording())
-            {
-                UpdateUIForRecording();
-            }
-            LoadFiles();
+            /* if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) || recordService.IsRecording())
+             {
+                 UpdateUIForRecording();
+             }*/
+            LoadFiles(null) ;
         }
 
-        private void RecordButton_Click(object sender, RoutedEventArgs e)
+     /*   private void RecordButton_Click(object sender, RoutedEventArgs e)
         {
             string wavFile, transFile = "";
             if (recordService.IsRecording())
@@ -150,7 +149,7 @@ namespace DemoAgent
                 timer = null;
             }
         }
-
+*/
 
         private void OnDeviceConnected(EventArrivedEventArgs e)
         {
@@ -168,7 +167,7 @@ namespace DemoAgent
             });
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+      /*  private void Timer_Tick(object sender, EventArgs e)
         {
             Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
             String time = "";
@@ -225,7 +224,7 @@ namespace DemoAgent
                     DemoAgentContext.INSTANCE.SaveChanges();
                 }
                 isMeeting = false;
-            }
+            }*/
             //string result = performRecognizeText(recordService.finalPath, app);
             //using (StreamWriter sw = new StreamWriter(recordService.transcriptionPath))
             //{
@@ -239,49 +238,56 @@ namespace DemoAgent
             //UtilHelper.EncryptFile(recordService.transcriptionPath, encryptedTransPath, account.PublicKey);
             //File.Delete(recordService.finalPath);
             //File.Delete(recordService.transcriptionPath);
-            processWavFiles.Enqueue(recordService.finalPath);
-            Task.Run(async () =>
-            {
-                try
-                {
-                    await recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
-                    App.Current.Dispatcher.Invoke(() =>
-                    {
-                        LoadFiles();
-                    });
-                }
-                catch (Exception ex)
-                {
-                    // Xử lý ngoại lệ nếu cần
-                    Console.WriteLine($"Error: {ex.Message}");
-                }
-            });
+            /* processWavFiles.Enqueue(recordService.finalPath);
+             Task.Run(async () =>
+             {
+                 try
+                 {
+                     await recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
+                     App.Current.Dispatcher.Invoke(() =>
+                     {
+                         LoadFiles(null);
+                     });
+                 }
+                 catch (Exception ex)
+                 {
+                     // Xử lý ngoại lệ nếu cần
+                     Console.WriteLine($"Error: {ex.Message}");
+                 }
+             });
 
-        }
+         }*/
 
-        private void UpdateUIForRecording()
-        {
-            if (recordService.IsRecording()
-                || recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account))
-            {
-                timeSpan = (TimeSpan)recordService.GetTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"));
-                StartMonitoring();
-                updateIcon(FontAwesomeIcon.Square);
-                TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
-                FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
-            }
-
-        }
-
-        private void LoadFiles()
+            /*   private void UpdateUIForRecording()
+               {
+                   if (recordService.IsRecording()
+                       || recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account))
+                   {
+                       timeSpan = (TimeSpan)recordService.GetTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"));
+                       StartMonitoring();
+                       updateIcon(FontAwesomeIcon.Square);
+                       TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                       FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
+                   }
+               }
+       */
+            private void LoadFiles(string text)
         {
             string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             if (!File.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
-            files = recordService.GetAllWaveFilesInDirectory(directory);
-            lvRecordings.ItemsSource = files;
+            if(text != null)
+            {
+                files = recordService.GetAllWaveFilesInDirectory(directory).Where(x => x.Name.Contains(text)).ToList();
+                lvRecordings.ItemsSource = files;
+            }
+            else
+            {
+                files = recordService.GetAllWaveFilesInDirectory(directory);
+                lvRecordings.ItemsSource = files;
+            }
         }
 
 
@@ -317,7 +323,7 @@ namespace DemoAgent
             }
         }
 
-        public void updateIcon(FontAwesomeIcon icon)
+/*        public void updateIcon(FontAwesomeIcon icon)
         {
             var iconImage = RecordButton.Template.FindName("IconImage", RecordButton) as ImageAwesome;
             if (iconImage != null)
@@ -325,7 +331,7 @@ namespace DemoAgent
                 iconImage.Icon = icon;
             }
         }
-
+*/
         private void lvRecordings_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (scrollViewer != null)
@@ -394,7 +400,7 @@ namespace DemoAgent
                     if (dialogResult == DialogResult.Yes)
                     {
                         recordService.RemoveWavFile(files, selectedFile.Path);
-                        LoadFiles();
+                        LoadFiles(null);
                     }
                 }
                 catch (Exception) { }
@@ -495,6 +501,11 @@ def audio_transcribe(wavPath, model, processor, device):
                 }
             }
             return result;
+        }
+
+        private void searchRecord_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            LoadFiles(searchRecord.Text);
         }
     }
 }

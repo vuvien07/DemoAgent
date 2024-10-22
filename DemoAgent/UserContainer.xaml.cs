@@ -93,7 +93,7 @@ namespace DemoAgent
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 RoutedEventArgs args = new RoutedEventArgs(Button.ClickEvent);
-                record.RecordButton.RaiseEvent(args);
+               // record.RecordButton.RaiseEvent(args);
             }), DispatcherPriority.ApplicationIdle);
             (Application.Current as App).SetCurrWindow(userContainer);
             (Application.Current as App).SubscribeClosingEvent(userContainer);

@@ -15,14 +15,17 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel>
+        <StackPanel Grid.Row="0" Grid.Column="0">
             <StackPanel Orientation="Horizontal">
                 <fa:FontAwesome Icon="Book"  FontSize="30" Margin="10,5,0,0" Foreground="Green"/>
-                <Label Content="Newly Transciption" HorizontalAlignment="Center" FontSize="20" FontWeight="SemiBold" />
+                <Label Content="Nội dung gần đây" HorizontalAlignment="Center" FontSize="20" FontWeight="SemiBold"/>
             </StackPanel>
-            <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Height="390">
+            <StackPanel Orientation="Horizontal">
+                <fa:FontAwesome Icon="Search" FontSize="20" Margin="5,3,5,0" />
+                <TextBox x:Name="searchTrans" Height="30" Width="250" TextChanged="searchTrans_TextChanged"/>
+            </StackPanel>
+            <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Height="365">
                 <ListView x:Name="lvTrans" Width="290" BorderThickness="0" Background="Transparent" >
-
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <StackPanel>
@@ -44,7 +47,7 @@
             </ScrollViewer>
         </StackPanel>
         <StackPanel Grid.Row="0" Grid.Column="1">
-            <GroupBox Header="Text Speech Recognizer"  Width="auto" Height="400" Margin="0,0,10,0">
+            <GroupBox Header="Nhận dạng giọng nói văn bản"  Width="auto" Height="400" Margin="0,0,10,0">
                 <GroupBox.Effect>
                     <DropShadowEffect Color="Black" ShadowDepth="1" BlurRadius="0" Opacity="0.1"/>
                 </GroupBox.Effect>

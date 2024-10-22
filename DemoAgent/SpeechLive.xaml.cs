@@ -103,16 +103,24 @@ namespace DemoAgent
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            Load();
+            Load(null);
         }
-        public void Load()
+        public void Load(string text)
         {
             string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
             if (!System.IO.File.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
-            lvTrans.ItemsSource = GetAllTextFilesInDirectory(directory);
+            if(text == null)
+            {
+                lvTrans.ItemsSource = GetAllTextFilesInDirectory(directory);
+            }
+            else
+            {
+                lvTrans.ItemsSource = GetAllTextFilesInDirectory(directory).Where(x => x.Name.Contains(text)).ToList();
+
+            }
         }
         private void MenuItemOpenFolder_Click(object sender, RoutedEventArgs e)
         {
@@ -176,7 +184,7 @@ namespace DemoAgent
                                     files.Remove(text);
                                 }
                             }
-                            Load();
+                            Load(null);
                             EventUtil.printNotice($"Remove file with path {selectedFile.Path} successfully!", MessageUtil.SUCCESS);
                         }
                         catch (Exception ex)
@@ -223,6 +231,11 @@ namespace DemoAgent
                     }
                 }
             }
+        }
+
+        private void searchTrans_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Load(searchTrans.Text);
         }
     }
 }
