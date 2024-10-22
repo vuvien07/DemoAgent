@@ -47,7 +47,7 @@ namespace DemoAgent
             }
             if(lsButton == null)
             {
-                lsButton = new List<ToggleButton>() { btRecord, btMeeting, btLive, btCryto, btProfileUser , btInformationApp , btContactApp };
+                lsButton = new List<ToggleButton>() { btRecord, btLive, btProfileUser , btInformationApp , btContactApp };
             }
             lbAccount.Content = account.Username;
             lbId.Content = account.Id;
