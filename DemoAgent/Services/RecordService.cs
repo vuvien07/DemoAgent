@@ -1,5 +1,6 @@
 ﻿using DemoAgent;
 using DemoAgent.Util;
+using Microsoft.IdentityModel.Tokens;
 using Models;
 using NAudio.MediaFoundation;
 using NAudio.Wave;
@@ -41,8 +42,8 @@ namespace Services
         }
 
         private WaveFileWriter fileWriter;
-        private bool isRecording;
-        private WaveInEvent waveInEvent;
+        public bool _isRecording;
+        public WaveInEvent waveInEvent;
         private ManagementEventWatcher connectWatcher;
         private ManagementEventWatcher disconnectWatcher;
         private Account account;
@@ -62,7 +63,6 @@ namespace Services
         public void InitializeService(Account account)
         {
             this.account = account;
-            _recordMode = MessageUtil.RECORD_MANUAL;
         }
 
         public List<dynamic> GetDevices()
@@ -89,52 +89,53 @@ namespace Services
             };
 
             fileWriter = new WaveFileWriter(outputFilePath, waveInEvent.WaveFormat);
-            float volumeFactor = 2.0f;  // Hệ số tăng âm lượng, tăng gấp đôi âm lượng
 
-            waveInEvent.DataAvailable += (s, e) =>
-            {
-                // Ghi dữ liệu âm thanh vào file, nhưng sau khi điều chỉnh âm lượng
-                for (int index = 0; index < e.BytesRecorded; index += 2)
-                {
-                    // Đọc mẫu âm thanh
-                    short sample = BitConverter.ToInt16(e.Buffer, index);
-
-                    // Điều chỉnh âm lượng
-                    int adjustedSample = (int)(sample * volumeFactor);
-
-                    // Đảm bảo giá trị không vượt quá giới hạn của short
-                    adjustedSample = Math.Max(short.MinValue, Math.Min(short.MaxValue, adjustedSample));
-
-                    // Ghi lại mẫu đã điều chỉnh vào buffer
-                    byte[] adjustedBytes = BitConverter.GetBytes((short)adjustedSample);
-                    e.Buffer[index] = adjustedBytes[0];
-                    e.Buffer[index + 1] = adjustedBytes[1];
-                }
-
-                // Ghi dữ liệu đã điều chỉnh vào file
-                if (fileWriter != null) // Kiểm tra để tránh lỗi NullReferenceException
-                {
-                    fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
-                }
-
-                // Chuyển đổi mẫu thành giá trị float (-1 đến 1) để xử lý thêm
-                float[] audioData = new float[e.BytesRecorded / 2];
-                for (int index = 0; index < e.BytesRecorded; index += 2)
-                {
-                    short sample = BitConverter.ToInt16(e.Buffer, index);
-                    audioData[index / 2] = sample / 32768f;
-                }
-                OnAudioDataAvailable?.Invoke(audioData);
-            };
+            waveInEvent.DataAvailable += OnDataAvailable;
 
             waveInEvent.StartRecording();
-            isRecording = true;
+            _isRecording = true;
             finalPath = outputFilePath;
+        }
+
+        public void OnDataAvailable(object sender, WaveInEventArgs e)
+        {
+            // Ghi dữ liệu âm thanh vào file, nhưng sau khi điều chỉnh âm lượng
+            for (int index = 0; index < e.BytesRecorded; index += 2)
+            {
+                // Đọc mẫu âm thanh
+                short sample = BitConverter.ToInt16(e.Buffer, index);
+
+                // Điều chỉnh âm lượng
+                int adjustedSample = (int)(sample * 2.0f);
+
+                // Đảm bảo giá trị không vượt quá giới hạn của short
+                adjustedSample = Math.Max(short.MinValue, Math.Min(short.MaxValue, adjustedSample));
+
+                // Ghi lại mẫu đã điều chỉnh vào buffer
+                byte[] adjustedBytes = BitConverter.GetBytes((short)adjustedSample);
+                e.Buffer[index] = adjustedBytes[0];
+                e.Buffer[index + 1] = adjustedBytes[1];
+            }
+
+            // Ghi dữ liệu đã điều chỉnh vào file
+            if (fileWriter != null) // Kiểm tra để tránh lỗi NullReferenceException
+            {
+                fileWriter.Write(e.Buffer, 0, e.BytesRecorded);
+            }
+
+            // Chuyển đổi mẫu thành giá trị float (-1 đến 1) để xử lý thêm
+            float[] audioData = new float[e.BytesRecorded / 2];
+            for (int index = 0; index < e.BytesRecorded; index += 2)
+            {
+                short sample = BitConverter.ToInt16(e.Buffer, index);
+                audioData[index / 2] = sample / 32768f;
+            }
+            OnAudioDataAvailable?.Invoke(audioData);
         }
 
         public void StopRecording(string finalePath, Account account)
         {
-            if (isRecording)
+            if (_isRecording)
             {
                 try
                 {
@@ -143,14 +144,7 @@ namespace Services
                     waveInEvent = null;
                     fileWriter.Dispose();
                     fileWriter = null;
-                    isRecording = false;
-                    var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
-                    if (meeting != null)
-                    {
-                        meeting.StatusId = 4;
-                        DemoAgentContext.INSTANCE.Meetings.Update(meeting);
-                        DemoAgentContext.INSTANCE.SaveChanges();
-                    }
+                    _isRecording = false;
                     EventUtil.printNotice($"Save record successfully!", MessageUtil.SUCCESS);
                 }
                 catch (Exception)
@@ -189,8 +183,6 @@ namespace Services
             }
         }
 
-        public bool IsRecording() => isRecording;
-
         public void SaveTimeSpan(string path, string content)
         {
             File.WriteAllText(path, content);
@@ -223,7 +215,7 @@ namespace Services
             return false;
         }
 
-        public List<WavFile> GetAllWaveFilesInDirectory(string path)
+        public List<WavFile> GetAllWaveFilesInDirectory(string path, string? name)
         {
             List<WavFile> waveFiles = new List<WavFile>();
             string[] files = Directory.GetFiles(path);
@@ -234,14 +226,17 @@ namespace Services
                     FileInfo fileInfo = new FileInfo(file);
                     if (fileInfo.Exists && fileInfo.Extension.Equals(".cnp", StringComparison.OrdinalIgnoreCase))
                     {
-                        waveFiles.Add(new WavFile
+                        if (name.IsNullOrEmpty() || fileInfo.Name.Contains(name))
                         {
-                            Name = fileInfo.Name,
-                            Type = fileInfo.Extension,
-                            Size = FormatFileSize(fileInfo.Length),
-                            Description = fileInfo.CreationTime.ToString(),
-                            Path = fileInfo.FullName
-                        });
+                            waveFiles.Add(new WavFile
+                            {
+                                Name = fileInfo.Name,
+                                Type = fileInfo.Extension,
+                                Size = FormatFileSize(fileInfo.Length),
+                                Description = fileInfo.CreationTime.ToString(),
+                                Path = fileInfo.FullName
+                            });
+                        }
                     }
                 }
             }
@@ -330,8 +325,8 @@ namespace Services
             await semaphore.WaitAsync();
             try
             {
-                OnProcessAudioTranscribe?.Invoke(Path.GetFileName(wavPath));
-                string result = await performRecognizeText(wavPath, app._model, app._processor, app._device);
+                OnProcessAudioTranscribe?.Invoke(wavPath);
+                string result = await performRecognizeText(wavPath, app._model, app._processor, app._device, app._punctuationModel);
                 await Task.Run(() =>
                 {
                     using (StreamWriter sw = new StreamWriter(transPath))
@@ -352,7 +347,7 @@ namespace Services
             }
         }
 
-        private async Task<string> performRecognizeText(string wavPath, dynamic model, dynamic processor, dynamic device)
+        private async Task<string> performRecognizeText(string wavPath, dynamic model, dynamic processor, dynamic device, dynamic punctuationModel)
         {
             return await Task<string>.Run(() =>
             {
@@ -365,7 +360,7 @@ namespace Services
                         pyModule.Set("model", model);
                         pyModule.Set("processor", processor);
                         pyModule.Set("device", device);
-
+                        pyModule.Set("punctuation_model", punctuationModel);
                         // Chạy mã Python
                         pyModule.Exec(@"
 import io
@@ -375,7 +370,7 @@ import torch
 import numpy as np
 
 
-def audio_transcribe(wavPath, model, processor, device):
+def audio_transcribe(wavPath, model, processor, device, punctuation_model):
     try:
         # Read audio from bytes
         audio_input, sample_rate = sf.read(wavPath)
@@ -384,20 +379,33 @@ def audio_transcribe(wavPath, model, processor, device):
         if sample_rate != 16000:
             audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
 
-        # Preprocess input data
-        input_values = processor(audio_input, return_tensors=""pt"", padding=""longest"").input_values
-        input_values = input_values.to(device)
+        chunk_size = 10 * 16000  # Kích thước đoạn (10 giây)
+        overlap_size = 2 * 16000  # Kích thước chồng lắp (2 giây)
+        transcripts = []
 
-        # Predict with the model
-        with torch.no_grad():
-            logits = model(input_values).logits
+        for i in range(0, len(audio_input), chunk_size - overlap_size):
+            # Lấy đoạn âm thanh hiện tại
+            chunk = audio_input[i:i + chunk_size]
 
-        predicted_ids = torch.argmax(logits, dim=-1)
+            # Kiểm tra nếu đoạn âm thanh không đủ dài
+            if len(chunk) < chunk_size:
+                break  # Dừng nếu không còn đủ dữ liệu
 
-        # Decode to text
-        transcription = processor.decode(predicted_ids[0])
+            input_values = processor(chunk, return_tensors=""pt"", padding=""longest"").input_values
+            input_values = input_values.to(device)
 
-        return transcription
+            with torch.no_grad():
+                logits = model(input_values).logits
+
+            predicted_ids = torch.argmax(logits, dim=-1)
+
+            transcription = processor.decode(predicted_ids[0])
+            transcripts.append(transcription)
+        
+        full_transcription = ' '.join(transcripts)
+
+        final_result = punctuation_model.restore_punctuation(full_transcription)
+        return final_result
     
     except ValueError as ve:
         print(f""ValueError: {ve} - Ensure the audio bytes are valid and compatible."")
@@ -410,7 +418,8 @@ def audio_transcribe(wavPath, model, processor, device):
                                 pyModule.GetAttr("wavPath"),
                                 pyModule.GetAttr("model"),
                                 pyModule.GetAttr("processor"),
-                                pyModule.GetAttr("device")
+                                pyModule.GetAttr("device"),
+                                pyModule.GetAttr("punctuation_model")
                             };
                         var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
                         _isCompleteTask = true;

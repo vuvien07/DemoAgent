@@ -29,6 +29,7 @@ namespace DemoAgent
         public dynamic? _device;
         public bool _isAutoClosing = false;
         public dynamic? _speechRecogition;
+        public dynamic? _punctuationModel;
 
         public App()
         {
@@ -86,7 +87,7 @@ namespace DemoAgent
                         RecordService recordService = RecordService.Instance;
 
                         // Dừng ghi âm nếu đang ghi
-                        if (app?.account != null && recordService.IsRecording())
+                        if (app?.account != null && recordService._isRecording)
                         {
                             recordService.StopRecording(recordService.finalPath, app.account);
                         }
@@ -133,7 +134,7 @@ namespace DemoAgent
 
         private void InitializePython()
         {
-            Environment.SetEnvironmentVariable("PYTHONNET_PYDLL", @"C:\Users\boot.AI\AppData\Local\Programs\Python\Python39\Python39.dll");
+            //Environment.SetEnvironmentVariable("PYTHONNET_PYDLL", @"C:\Users\boot.AI\AppData\Local\Programs\Python\Python39\Python39.dll");
             if (!PythonEngine.IsInitialized)
                 PythonEngine.Initialize();
             try
@@ -147,6 +148,8 @@ namespace DemoAgent
                         _processor = _speechRecogition.load_processor();
                     if (_device is null)
                         _device = _speechRecogition.get_device();
+                    if(_punctuationModel is null)
+                        _punctuationModel = _speechRecogition.load_punctuation_model();
                 }
             }
             catch (Exception ex)

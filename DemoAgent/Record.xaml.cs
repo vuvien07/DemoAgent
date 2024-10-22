@@ -36,21 +36,19 @@ namespace DemoAgent
     /// </summary>
     public partial class Record : System.Windows.Controls.UserControl
     {
-        private DispatcherTimer timer;
+        public DispatcherTimer timer;
         private TimeSpan timeSpan = TimeSpan.Zero;
         private Account account;
         private List<WavFile> files;
         private List<string> processWavFiles;
-        private bool isMeeting;
         private RecordService? recordService = RecordService.Instance;
         private App app = System.Windows.Application.Current as App;
 
-        public Record(Account account, bool isMeeting)
+        public Record(Account account)
         {
             InitializeComponent();
             this.account = account;
-            this.isMeeting = isMeeting;
-            if (!recordService.IsRecording())
+            if (!recordService._isRecording)
             {
                 recordService.InitializeService(account);
                 timeSpan = TimeSpan.Zero;
@@ -60,64 +58,55 @@ namespace DemoAgent
             if (processWavFiles == null)
             {
                 recordService.OnProcessAudioTranscribe += OnProcessAudioTranscribe;
-               // recordService.OffNoticeLabel += OffNoticeLabel;
+                recordService.OffNoticeLabel += OffNoticeLabel;
                 processWavFiles = new List<string>();
             }
         }
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+
+        public async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             DeviceCombobox.ItemsSource = recordService.GetDevices();
             recordService.StartWatching(OnDeviceConnected, OnDeviceDisconnected);
-            /* if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) || recordService.IsRecording())
-             {
-                 UpdateUIForRecording();
-             }*/
-            LoadFiles(null) ;
+            if (recordService._isRecording)
+            {
+                UpdateUIForRecording();
+            }
+            else
+            {
+               
+                LoadFiles(null);
+                MessageBoxResult result = await Task.Run(() =>
+                {
+                    return System.Windows.MessageBox.Show(
+                "Have order Done?", "Question",
+                MessageBoxButton.YesNo, MessageBoxImage.Question
+                    );
+                });
+                if (result == MessageBoxResult.Yes)
+                {
+                    StartRecord();
+                }
+            }
         }
 
-     /*   private void RecordButton_Click(object sender, RoutedEventArgs e)
+        private void StartRecord()
         {
-            string wavFile, transFile = "";
-            if (recordService.IsRecording())
-            {
-                StopRecord();
-                return;
-            }
-            updateIcon(FontAwesomeIcon.Square);
+            string wavFile = "", transFile = "";
             string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
             if (!Directory.Exists(recordDirectory))
             {
                 Directory.CreateDirectory(recordDirectory);
             }
-            if (!recordService.IsRecording())
+            if (!recordService._isRecording)
             {
-                if (recordService._recordMode == "Automatic")
-                {
-                    Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
-                    wavFile = $"{meet.Name}";
-                }
-                else
-                {
-                    wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}";
-                }
+                wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}";
+                transFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.txt";
             }
-            updateIcon(FontAwesomeIcon.Square);
+            updateIcon(FontAwesomeIcon.Square, (app.currWindow as UserContainer).BtStopRecord, "IcoStopRecord");
             if (!Directory.Exists(transcriptDirectory))
             {
                 Directory.CreateDirectory(transcriptDirectory);
-            }
-            switch (recordService._recordMode)
-            {
-                case "Manual":
-                    wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.wav";
-                    transFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.txt";
-                    break;
-                default:
-                    Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
-                    wavFile = $"{meet.Name}.wav";
-                    transFile = $"{meet.Name}.txt";
-                    break;
             }
             recordService.finalPath = System.IO.Path.Combine(recordDirectory, wavFile);
             recordService.transcriptionPath = System.IO.Path.Combine(transcriptDirectory, transFile);
@@ -175,40 +164,20 @@ namespace DemoAgent
 
       /*  private void Timer_Tick(object sender, EventArgs e)
         {
-            Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
-            String time = "";
-            if (recordService._recordMode == "Automatic")
+            if (recordService._isRecording)
             {
-                if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) && recordService.IsRecording())
-                {
-                    timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
-                    recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                    TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
-                    FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
-                }
-                else
-                {
-                    StopRecord();
-                }
+                timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
+                recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
+                (app.currWindow as UserContainer).RecordTime.Visibility = Visibility.Visible;
+                (app.currWindow as UserContainer).RecordTime.Text = timeSpan.ToString(@"hh\:mm\:ss");
+                (app.currWindow as UserContainer).BtPauseRecord.Visibility = Visibility.Visible;
             }
-            else
-            {
-                if (recordService.IsRecording())
-                {
-                    timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
-                    recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                    TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
-                    FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
-                }
-            }
-
         }
 
-        private void StopRecord()
+        public void StopRecord()
         {
             Dispatcher.Invoke(() =>
             {
-                TimerLabel.Content = "Record time:";
                 FileNameLable.Content = "";
             });
             timeSpan = TimeSpan.Zero;
@@ -216,84 +185,58 @@ namespace DemoAgent
             StopMonitoring();
             string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
-            updateIcon(FontAwesomeIcon.Microphone);
             recordService.StopRecording(recordService.finalPath, account);
             recordService.StopWatching();
-            recordService._recordMode = MessageUtil.RECORD_MANUAL;
-            if (isMeeting)
-            {
-                var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
-                if (meeting != null)
-                {
-                    meeting.StatusId = 4;
-                    DemoAgentContext.INSTANCE.Meetings.Update(meeting);
-                    DemoAgentContext.INSTANCE.SaveChanges();
-                }
-                isMeeting = false;
-            }*/
-            //string result = performRecognizeText(recordService.finalPath, app);
-            //using (StreamWriter sw = new StreamWriter(recordService.transcriptionPath))
-            //{
-            //    sw.WriteLine(result);
-            //}
-            //string encryptedWavName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.finalPath)}.cnp";
-            //string encryptedWavPath = System.IO.Path.Combine(recordDirectory, encryptedWavName);
-            //string encryptedTransName = $"{System.IO.Path.GetFileNameWithoutExtension(recordService.transcriptionPath)}.cnp";
-            //string encryptedTransPath = System.IO.Path.Combine(transcriptDirectory, encryptedTransName);
-            //UtilHelper.EncryptFile(recordService.finalPath, encryptedWavPath, account.PublicKey);
-            //UtilHelper.EncryptFile(recordService.transcriptionPath, encryptedTransPath, account.PublicKey);
-            //File.Delete(recordService.finalPath);
-            //File.Delete(recordService.transcriptionPath);
-            /* processWavFiles.Enqueue(recordService.finalPath);
-             Task.Run(async () =>
-             {
-                 try
-                 {
-                     await recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
-                     App.Current.Dispatcher.Invoke(() =>
-                     {
-                         LoadFiles(null);
-                     });
-                 }
-                 catch (Exception ex)
-                 {
-                     // Xử lý ngoại lệ nếu cần
-                     Console.WriteLine($"Error: {ex.Message}");
-                 }
-             });
-
-         }*/
-
-            /*   private void UpdateUIForRecording()
+            processWavFiles.Add(recordService.finalPath);
+            recordService.fileWavProcess(recordService.finalPath);
+            LoadFiles(null);
+            Task.Run(async () =>
+           {
+               try
                {
-                   if (recordService.IsRecording()
-                       || recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account))
-                   {
-                       timeSpan = (TimeSpan)recordService.GetTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"));
-                       StartMonitoring();
-                       updateIcon(FontAwesomeIcon.Square);
-                       TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
-                       FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
-                   }
+                   await recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
                }
-       */
-            private void LoadFiles(string text)
+               catch (Exception ex)
+               {
+                   // Xử lý ngoại lệ nếu cần
+                   Console.WriteLine($"Error: {ex.Message}");
+               }
+           });
+        }
+
+        private void OffNoticeLabel()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                NoticeLable.Visibility = Visibility.Collapsed;
+            });
+        }
+
+        private void UpdateUIForRecording()
+        {
+            if (recordService._isRecording)
+            {
+                timeSpan = (TimeSpan)recordService.GetTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"));
+                StartMonitoring();
+                updateIcon(FontAwesomeIcon.Square, (app.currWindow as UserContainer).BtStopRecord, "IcoStopRecord");
+            
+                (app.currWindow as UserContainer).RecordTime.Visibility = Visibility.Visible;
+                (app.currWindow as UserContainer).RecordTime.Text = timeSpan.ToString(@"hh\:mm\:ss");
+                (app.currWindow as UserContainer).BtPauseRecord.Visibility = Visibility.Visible;
+
+            }
+
+        }
+
+        private void LoadFiles(string? name)
         {
             string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             if (!File.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
-            if(text != null)
-            {
-                files = recordService.GetAllWaveFilesInDirectory(directory).Where(x => x.Name.Contains(text)).ToList();
-                lvRecordings.ItemsSource = files;
-            }
-            else
-            {
-                files = recordService.GetAllWaveFilesInDirectory(directory);
-                lvRecordings.ItemsSource = files;
-            }
+            files = recordService.GetAllWaveFilesInDirectory(directory, name);
+            lvRecordings.ItemsSource = files;
         }
 
 
@@ -329,15 +272,15 @@ namespace DemoAgent
             }
         }
 
-/*        public void updateIcon(FontAwesomeIcon icon)
+        public void updateIcon(FontAwesomeIcon icon, ToggleButton button, string target)
         {
-            var iconImage = RecordButton.Template.FindName("IconImage", RecordButton) as ImageAwesome;
+            var iconImage = button.FindName(target) as ImageAwesome;
             if (iconImage != null)
             {
                 iconImage.Icon = icon;
             }
         }
-*/
+
         private void lvRecordings_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (scrollViewer != null)
@@ -391,11 +334,11 @@ namespace DemoAgent
 
         private void OnProcessAudioTranscribe(string fileName)
         {
-                Dispatcher.Invoke(() =>
-                 {
-                     NoticeLable.Visibility = Visibility.Visible;
-                     ProcessWavLabel.Text = $"Processing transcribe audio for file {fileName}";
-                 });
+            Dispatcher.Invoke(() =>
+             {
+                 NoticeLable.Visibility = Visibility.Visible;
+                 ProcessWavLabel.Text = $"Processing transcribe audio for file {fileName}";
+             });
         }
 
 
@@ -452,75 +395,10 @@ namespace DemoAgent
             }
         }
 
-        private string performRecognizeText(string wavPath, dynamic app)
-        {
-            string result = "";
-            using (PyModule pyModule = Py.CreateScope())
-            {
-                // Định nghĩa biến trong phạm vi
-                pyModule.Set("wavPath", wavPath);
-                pyModule.Set("model", app._model);
-                pyModule.Set("processor", app._processor);
-                pyModule.Set("device", app._device);
-
-                // Chạy mã Python
-                pyModule.Exec(@"
-import io
-import soundfile as sf
-import librosa
-import torch
-import numpy as np
-
-
-def audio_transcribe(wavPath, model, processor, device):
-    try:
-        # Read audio from bytes
-        audio_input, sample_rate = sf.read(wavPath)
-
-        # Ensure that the audio has the correct sample rate
-        if sample_rate != 16000:
-            audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
-
-        # Preprocess input data
-        input_values = processor(audio_input, return_tensors=""pt"", padding=""longest"").input_values
-        input_values = input_values.to(device)
-
-        # Predict with the model
-        with torch.no_grad():
-            logits = model(input_values).logits
-
-        predicted_ids = torch.argmax(logits, dim=-1)
-
-        # Decode to text
-        transcription = processor.decode(predicted_ids[0])
-
-        return transcription
-    
-    except ValueError as ve:
-        print(f""ValueError: {ve} - Ensure the audio bytes are valid and compatible."")
-    except RuntimeError as re:
-        print(f""RuntimeError: {re} - Check the model and processor compatibility with the input."")
-    except Exception as e:
-        print(f""An error occurred during audio transcription: {e} - Audio input type: {type(audio_input)}"")
-                            ");
-                PyObject[] pyObject = new PyObject[] {
-                                pyModule.GetAttr("wavPath"),
-                                pyModule.GetAttr("model"),
-                                pyModule.GetAttr("processor"),
-                                pyModule.GetAttr("device")
-                            };
-                var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
-                if (transcription != null && transcription is PyObject)
-                {
-                    result = transcription.As<string>();
-                }
-            }
-            return result;
-        }
-
         private void searchRecord_TextChanged(object sender, TextChangedEventArgs e)
         {
             LoadFiles(searchRecord.Text);
         }
+
     }
 }

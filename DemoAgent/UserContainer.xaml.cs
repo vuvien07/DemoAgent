@@ -1,4 +1,5 @@
-﻿using HotelManagement.Util;
+﻿using FontAwesome.WPF;
+using HotelManagement.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Models;
 using Services;
@@ -22,6 +23,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Xaml;
 using Util;
 
 namespace DemoAgent
@@ -32,26 +34,33 @@ namespace DemoAgent
     public partial class UserContainer : Window
     {
         private Account account;
-        private readonly RecordService? recordService;
+        private RecordService? recordService;
         private List<ToggleButton> lsButton;
         private Record? _recordInstance = null;
+        private RoutedEventArgs? _args = null;
 
         public UserContainer(Account account)
         {
             InitializeComponent();
             this.account = account;
-            if(recordService == null)
+            if (recordService == null)
             {
                 recordService = RecordService.Instance;
                 recordService.InitializeService(account);
             }
-            if(lsButton == null)
+            if (lsButton == null)
             {
-                lsButton = new List<ToggleButton>() { btRecord, btLive, btProfileUser , btInformationApp , btContactApp };
+                lsButton = new List<ToggleButton>() { btRecord, btLive, btProfileUser, btInformationApp, btContactApp };
+            }
+            if (_recordInstance == null)
+            {
+                _args = new RoutedEventArgs(Window.LoadedEvent);
+                _recordInstance = new Record(account);
+                ContainerUser.Child = _recordInstance;
             }
             lbAccount.Content = account.Username;
             lbId.Content = account.Id;
-            ContainerUser.Child = new UserCrypto(account);
+            DisableButton(btRecord);
         }
 
         private void btLive_Click(object sender, RoutedEventArgs e)
@@ -63,50 +72,14 @@ namespace DemoAgent
 
         private void btRecord_Click(object sender, RoutedEventArgs e)
         {
-            EnableButton(lsButton);
-            if (_recordInstance == null) // Check if the instance exists
-            {
-                _recordInstance = new Record(account, false); // Create only once
-                ContainerUser.Child = _recordInstance;
-            }
-            else
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 ContainerUser.Child = _recordInstance;
-            }
-
-            DisableButton((ToggleButton)sender);
-        }
-
-        private void btCryto_Click(object sender, RoutedEventArgs e)
-        {
-            EnableButton(lsButton);
-            var userCrypto = new UserCrypto(account);
-            ContainerUser.Child = userCrypto;
-            DisableButton((ToggleButton)sender);
-        }
-
-        private void btMeeting_Click(object sender, RoutedEventArgs e)
-        {
-            EnableButton(lsButton);
-            var meeting = new UserMeeting(account);
-            ContainerUser.Child = meeting;
-            DisableButton((ToggleButton)sender);
-        }
-
-        public void RaiseEvent()
-        {
-            var userContainer = new UserContainer(account);
-            userContainer.ContainerUser.Child = new Record(account, true);
-            recordService._recordMode = MessageUtil.RECORD_AUTOMATIC;
-            userContainer.Show();
-            Record record = userContainer.ContainerUser.Child as Record;
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                RoutedEventArgs args = new RoutedEventArgs(Button.ClickEvent);
-               // record.RecordButton.RaiseEvent(args);
-            }), DispatcherPriority.ApplicationIdle);
-            (Application.Current as App).SetCurrWindow(userContainer);
-            (Application.Current as App).SubscribeClosingEvent(userContainer);
+                EnableButton(lsButton);
+                DisableButton((ToggleButton)sender);
+                _recordInstance.Loaded -= _recordInstance.Window_Loaded;
+                _recordInstance.Loaded += _recordInstance.Window_Loaded;
+            });
         }
 
         private void DisableButton(ToggleButton button)
@@ -128,7 +101,8 @@ namespace DemoAgent
         {
             foreach (var button in buttons)
             {
-                if (!button.IsEnabled) { 
+                if (!button.IsEnabled)
+                {
                     button.IsEnabled = true;
                     return;
                 }
@@ -210,8 +184,36 @@ namespace DemoAgent
             BellOn.Visibility = Visibility.Collapsed;
             bellOff.Visibility = Visibility.Visible;
             DisableButton((ToggleButton)sender);
-
         }
 
+        private void BtStopRecord_Clicked(object sender, RoutedEventArgs e)
+        {
+           var iconImage = BtPauseRecord.FindName("IcoStopRecord") as ImageAwesome;
+           if(iconImage.Icon == FontAwesomeIcon.Square)
+            {
+                _recordInstance.updateIcon(FontAwesome.WPF.FontAwesomeIcon.Pause, BtPauseRecord, "IcoPauseRecord");
+                _recordInstance.updateIcon(FontAwesome.WPF.FontAwesomeIcon.DotCircleOutline, BtStopRecord, "IcoStopRecord");
+                BtPauseRecord.Visibility = Visibility.Collapsed;
+                RecordTime.Visibility = Visibility.Collapsed;
+                _recordInstance.StopRecord();
+            }
+        }
+
+        private void BtPauseRecord_Checked(object sender, RoutedEventArgs e)
+        {
+            var iconImage = BtPauseRecord.FindName("IcoPauseRecord") as ImageAwesome;
+            if (iconImage.Icon == FontAwesomeIcon.Pause)
+            {
+                _recordInstance.updateIcon(FontAwesome.WPF.FontAwesomeIcon.Play, BtPauseRecord, "IcoPauseRecord");
+                _recordInstance.timer.Stop();
+                recordService.waveInEvent.DataAvailable -= recordService.OnDataAvailable;
+            }
+            else
+            {
+                _recordInstance.updateIcon(FontAwesome.WPF.FontAwesomeIcon.Pause, BtPauseRecord, "IcoPauseRecord");
+                _recordInstance.timer.Start();
+                recordService.waveInEvent.DataAvailable += recordService.OnDataAvailable;
+            }
+        }
     }
 }

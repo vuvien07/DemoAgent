@@ -5,6 +5,7 @@ import torch
 import numpy as np
 
 from transformers import AutoProcessor, AutoModelForCTC
+from deepmultilingualpunctuation import PunctuationModel
 
 MODEL_NAME = "nguyenvulebinh/wav2vec2-base-vietnamese-250h"
 
@@ -22,6 +23,9 @@ def get_device():
 def load_processor():
     processor = AutoProcessor.from_pretrained(MODEL_NAME)
     return processor
+
+def load_punctuation_model():
+    return PunctuationModel()
 
 def audio_transcribe(wavPath, model, processor, device):
     try:

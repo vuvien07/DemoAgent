@@ -6,8 +6,8 @@
              xmlns:local="clr-namespace:DemoAgent"
              xmlns:fa="http://schemas.fontawesome.io/icons/"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"  Loaded="UserControl_Loaded">
-<Grid Background="WhiteSmoke">
+                 d:DesignHeight="450" d:DesignWidth="800"  Loaded="UserControl_Loaded">
+    <Grid Background="WhiteSmoke">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="300"/>
             <ColumnDefinition Width="500"/>
@@ -53,7 +53,6 @@
                 </GroupBox.Effect>
                 <TextBox x:Name="ResultTextBox" Width="Auto" Height="auto" TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"/>
             </GroupBox>
-
         </StackPanel>
     </Grid>
 </UserControl>

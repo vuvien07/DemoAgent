@@ -50,8 +50,8 @@
                     <fa:ImageAwesome Icon="Lock" Height="20" Width="20" Foreground="White" Margin="0,0,10,0"/>
                     <TextBlock Text="Crypto " VerticalAlignment="Center"/>
                 </StackPanel>
-            </ToggleButton>
-            <ToggleButton x:Name="btMeeting" Click="btMeeting_Click" Margin="0,0,0,10"  Height="36" Style="{DynamicResource UserContainerMenu}" >
+            </ToggleButton>-->
+            <!--<ToggleButton x:Name="btMeeting" Click="btMeeting_Click" Margin="0,0,0,10"  Height="36" Style="{DynamicResource UserContainerMenu}" >
                 <StackPanel Orientation="Horizontal">
                     <fa:ImageAwesome Icon="Bullhorn" Height="20" Width="20" Foreground="White" Margin="0,0,5,0"/>
                     <TextBlock Text="Meeting" VerticalAlignment="Center"/>
@@ -72,20 +72,20 @@
                 </StackPanel>
             </ToggleButton>
             <Line X1="0" Y1="0" X2="100" Y2="0" Stroke="White" StrokeThickness="2" HorizontalAlignment="Center" />
-            <ToggleButton Margin="0,10,0,10" Click="btLive_Click"  Height="40" Style="{DynamicResource UserContainerMenu}">
+            <ToggleButton x:Name="BtStopRecord" Margin="0,10,0,10" Height="40" Style="{DynamicResource UserContainerMenu}" Click="BtStopRecord_Clicked">
                 <StackPanel Orientation="Horizontal">
                     <Grid>
                         <Ellipse Fill="White" Stroke="White" StrokeThickness="1" Width="40" Height="40"/>
-                        <fa:ImageAwesome  Icon="DotCircleOutline" VerticalAlignment="Center" HorizontalAlignment="Center" Height="20" Width="20" Foreground="#BD4755"/>
+                        <fa:ImageAwesome x:Name="IcoStopRecord" Icon="DotCircleOutline" VerticalAlignment="Center" HorizontalAlignment="Center" Height="20" Width="20" Foreground="#BD4755"/>
                     </Grid>
                 </StackPanel>
             </ToggleButton>
-            <TextBlock Text="00:10:42" HorizontalAlignment="Center" Foreground="White" Visibility="Collapsed"/>
-            <ToggleButton Margin="0,10,0,10" Click="btLive_Click"  Height="36" Style="{DynamicResource UserContainerMenu}" Visibility="Collapsed">
+            <TextBlock x:Name="RecordTime" HorizontalAlignment="Center" Foreground="White" Visibility="Collapsed"/>
+            <ToggleButton x:Name="BtPauseRecord" Margin="0,10,0,10" Height="36" Style="{DynamicResource UserContainerMenu}" Visibility="Collapsed" Click="BtPauseRecord_Checked">
                 <StackPanel Orientation="Horizontal">
                     <Grid>
                         <Ellipse Fill="White" Stroke="White" StrokeThickness="1" Width="35" Height="35"/>
-                        <fa:ImageAwesome x:Name="IconImage" Icon="Pause"  VerticalAlignment="Center" HorizontalAlignment="Center" Height="20" Width="20" />
+                        <fa:ImageAwesome x:Name="IcoPauseRecord" Icon="Pause"  VerticalAlignment="Center" HorizontalAlignment="Center" Height="20" Width="20" />
                     </Grid>
                 </StackPanel>
             </ToggleButton>
