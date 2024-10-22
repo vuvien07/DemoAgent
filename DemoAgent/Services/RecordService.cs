@@ -383,11 +383,18 @@ def audio_transcribe(wavPath, model, processor, device, punctuation_model):
         # Ensure that the audio has the correct sample rate
         if sample_rate != 16000:
             audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
-        chunk_size = 10 * 16000
+
+        chunk_size = 10 * 16000  # Kích thước đoạn (10 giây)
+        overlap_size = 2 * 16000  # Kích thước chồng lắp (2 giây)
         transcripts = []
 
-        for i in range(0, len(audio_input), chunk_size):
+        for i in range(0, len(audio_input), chunk_size - overlap_size):
+            # Lấy đoạn âm thanh hiện tại
             chunk = audio_input[i:i + chunk_size]
+
+            # Kiểm tra nếu đoạn âm thanh không đủ dài
+            if len(chunk) < chunk_size:
+                break  # Dừng nếu không còn đủ dữ liệu
 
             input_values = processor(chunk, return_tensors=""pt"", padding=""longest"").input_values
             input_values = input_values.to(device)
