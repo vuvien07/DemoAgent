@@ -141,7 +141,7 @@ namespace DemoAgent
                 timer = null;
             }
         }
-*/
+
 
         private void OnDeviceConnected(EventArrivedEventArgs e)
         {
@@ -162,7 +162,7 @@ namespace DemoAgent
             LoadFiles(null);
         }
 
-      /*  private void Timer_Tick(object sender, EventArgs e)
+        private void Timer_Tick(object sender, EventArgs e)
         {
             if (recordService._isRecording)
             {
