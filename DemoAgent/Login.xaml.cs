@@ -55,7 +55,6 @@ namespace DemoAgent
                 {
                     isLoggingIn = true;
                     InitializeTimer();
-                    
                 }
             });
         }

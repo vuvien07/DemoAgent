@@ -1,37 +1,10 @@
 ﻿using DemoAgent.Util;
-using FontAwesome.WPF;
-using Microsoft.Identity.Client.NativeInterop;
-using Models;
-using NAudio.Wave;
-using Newtonsoft.Json.Linq;
-using Python.Runtime;
-using Services;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Speech.Recognition;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 using Util;
-using Models;
-using static System.Net.WebRequestMethods;
-using System.Windows.Forms;
+
 
 namespace DemoAgent
 {
@@ -223,6 +196,10 @@ namespace DemoAgent
                     }
                 }
             }
+        }
+
+        private void searchTrans_TextChanged(object sender, TextChangedEventArgs e)
+        {
         }
     }
 }

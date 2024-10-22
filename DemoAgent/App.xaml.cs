@@ -87,7 +87,7 @@ namespace DemoAgent
                         RecordService recordService = RecordService.Instance;
 
                         // Dừng ghi âm nếu đang ghi
-                        if (app?.account != null && recordService.IsRecording())
+                        if (app?.account != null && recordService._isRecording)
                         {
                             recordService.StopRecording(recordService.finalPath, app.account);
                         }
@@ -134,7 +134,7 @@ namespace DemoAgent
 
         private void InitializePython()
         {
-            Environment.SetEnvironmentVariable("PYTHONNET_PYDLL", @"C:\Users\boot.AI\AppData\Local\Programs\Python\Python39\Python39.dll");
+            //Environment.SetEnvironmentVariable("PYTHONNET_PYDLL", @"C:\Users\boot.AI\AppData\Local\Programs\Python\Python39\Python39.dll");
             if (!PythonEngine.IsInitialized)
                 PythonEngine.Initialize();
             try
