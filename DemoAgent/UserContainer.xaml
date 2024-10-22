@@ -46,18 +46,18 @@
             </Grid>
             <Line X1="0" Y1="0" X2="100" Y2="0" Stroke="White" StrokeThickness="2" HorizontalAlignment="Center" />
 
-            <ToggleButton x:Name="btCryto" Margin="0,10,0,10" Click="btCryto_Click"  Height="36" Width="120"  Style="{DynamicResource UserContainerMenu}" >
+            <!--<ToggleButton x:Name="btCryto" Margin="0,10,0,10" Click="btCryto_Click"  Height="36" Width="120"  Style="{DynamicResource UserContainerMenu}" >
                 <StackPanel Orientation="Horizontal">
                     <fa:ImageAwesome Icon="Lock" Height="20" Width="20" Foreground="White" Margin="0,0,10,0"/>
                     <TextBlock Text="Crypto " VerticalAlignment="Center"/>
                 </StackPanel>
-            </ToggleButton>
-            <ToggleButton x:Name="btMeeting" Click="btMeeting_Click" Margin="0,0,0,10"  Height="36" Style="{DynamicResource UserContainerMenu}" >
+            </ToggleButton>-->
+            <!--<ToggleButton x:Name="btMeeting" Click="btMeeting_Click" Margin="0,0,0,10"  Height="36" Style="{DynamicResource UserContainerMenu}" >
                 <StackPanel Orientation="Horizontal">
                     <fa:ImageAwesome Icon="Bullhorn" Height="20" Width="20" Foreground="White" Margin="0,0,5,0"/>
                     <TextBlock Text="Meeting" VerticalAlignment="Center"/>
                 </StackPanel>
-            </ToggleButton>
+            </ToggleButton>-->
 
             <ToggleButton x:Name="btRecord" Margin="0,0,0,10" Click="btRecord_Click"  Height="36" Style="{DynamicResource UserContainerMenu}" >
                 <StackPanel Orientation="Horizontal">

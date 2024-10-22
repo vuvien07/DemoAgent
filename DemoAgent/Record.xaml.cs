@@ -69,16 +69,28 @@ namespace DemoAgent
         {
             DeviceCombobox.ItemsSource = recordService.GetDevices();
             recordService.StartWatching(OnDeviceConnected, OnDeviceDisconnected);
-            if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) || recordService.IsRecording())
+            if (recordService.IsRecording())
             {
                 UpdateUIForRecording();
+            }
+            else
+            {
+
             }
             LoadFiles();
         }
 
+        //private void RecordButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (recordService.IsRecording())
+        //    {
+
+        //    }
+        //}
+
         private void RecordButton_Click(object sender, RoutedEventArgs e)
         {
-            string wavFile, transFile = "";
+            string wavFile = "", transFile = "";
             if (recordService.IsRecording())
             {
                 StopRecord();
@@ -93,32 +105,13 @@ namespace DemoAgent
             }
             if (!recordService.IsRecording())
             {
-                if (recordService._recordMode == "Automatic")
-                {
-                    Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
-                    wavFile = $"{meet.Name}";
-                }
-                else
-                {
-                    wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}";
-                }
+                wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}";
+                transFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.txt";
             }
             updateIcon(FontAwesomeIcon.Square);
             if (!Directory.Exists(transcriptDirectory))
             {
                 Directory.CreateDirectory(transcriptDirectory);
-            }
-            switch (recordService._recordMode)
-            {
-                case "Manual":
-                    wavFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.wav";
-                    transFile = $"{DateTime.Now:yyyyMMdd_HHmmss}_{account.Username}.txt";
-                    break;
-                default:
-                    Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
-                    wavFile = $"{meet.Name}.wav";
-                    transFile = $"{meet.Name}.txt";
-                    break;
             }
             recordService.finalPath = System.IO.Path.Combine(recordDirectory, wavFile);
             recordService.transcriptionPath = System.IO.Path.Combine(transcriptDirectory, transFile);
@@ -173,34 +166,12 @@ namespace DemoAgent
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            Meeting meet = MeetingDBContext.Instance.GetMeetingByCreator(account.Username);
-            String time = "";
-            if (recordService._recordMode == "Automatic")
+            if (recordService._isRecording)
             {
-                if (recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account) && recordService.IsRecording())
-                {
-                    timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
-                    recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                    TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
-                    FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
-                }
-                else
-                {
-                    if (isMeeting && timer != null)
-                    {
-                        StopRecord();
-                    }
-                }
-            }
-            else
-            {
-                if (recordService.IsRecording())
-                {
-                    timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
-                    recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
-                    TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
-                    FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
-                }
+                timeSpan = timeSpan.Add(TimeSpan.FromSeconds(1));
+                recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
+                TimerLabel.Content = $"Record time: {timeSpan.ToString(@"hh\:mm\:ss")}";
+                FileNameLable.Content = System.IO.Path.GetFileName(recordService.finalPath);
             }
 
         }
@@ -232,23 +203,18 @@ namespace DemoAgent
             processWavFiles.Add(recordService.finalPath);
             recordService.fileWavProcess(recordService.finalPath);
             LoadFiles();
-             Task.Run(async () =>
-            {
-                try
-                {
-                    await recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
-                }
-                catch (Exception ex)
-                {
-                    // Xử lý ngoại lệ nếu cần
-                    Console.WriteLine($"Error: {ex.Message}");
-                }
-            });
-            //_ = Task.Run(() =>
-            //{
-            //    OnProcessAudioTranscribe(recordService.finalPath);
-            //}).ConfigureAwait(false);
-
+            Task.Run(async () =>
+           {
+               try
+               {
+                   await recordService.processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
+               }
+               catch (Exception ex)
+               {
+                   // Xử lý ngoại lệ nếu cần
+                   Console.WriteLine($"Error: {ex.Message}");
+               }
+           });
         }
 
         private void OffNoticeLabel()
@@ -261,8 +227,7 @@ namespace DemoAgent
 
         private void UpdateUIForRecording()
         {
-            if (recordService.IsRecording()
-                || recordService.CheckCurrentTimeBetweenStartTimeAndEndTime(account))
+            if (recordService._isRecording)
             {
                 timeSpan = (TimeSpan)recordService.GetTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"));
                 StartMonitoring();
@@ -379,11 +344,11 @@ namespace DemoAgent
 
         private void OnProcessAudioTranscribe(string fileName)
         {
-                Dispatcher.Invoke(() =>
-                 {
-                     NoticeLable.Visibility = Visibility.Visible;
-                     ProcessWavLabel.Text = $"Processing transcribe audio for file {fileName}";
-                 });
+            Dispatcher.Invoke(() =>
+             {
+                 NoticeLable.Visibility = Visibility.Visible;
+                 ProcessWavLabel.Text = $"Processing transcribe audio for file {fileName}";
+             });
         }
 
 

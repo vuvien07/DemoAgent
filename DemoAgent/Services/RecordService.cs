@@ -41,7 +41,7 @@ namespace Services
         }
 
         private WaveFileWriter fileWriter;
-        private bool isRecording;
+        public bool _isRecording;
         private WaveInEvent waveInEvent;
         private ManagementEventWatcher connectWatcher;
         private ManagementEventWatcher disconnectWatcher;
@@ -62,7 +62,6 @@ namespace Services
         public void InitializeService(Account account)
         {
             this.account = account;
-            _recordMode = MessageUtil.RECORD_MANUAL;
         }
 
         public List<dynamic> GetDevices()
@@ -128,13 +127,13 @@ namespace Services
             };
 
             waveInEvent.StartRecording();
-            isRecording = true;
+            _isRecording = true;
             finalPath = outputFilePath;
         }
 
         public void StopRecording(string finalePath, Account account)
         {
-            if (isRecording)
+            if (_isRecording)
             {
                 try
                 {
@@ -143,7 +142,7 @@ namespace Services
                     waveInEvent = null;
                     fileWriter.Dispose();
                     fileWriter = null;
-                    isRecording = false;
+                    _isRecording = false;
                     var meeting = DemoAgentContext.INSTANCE.Meetings.FirstOrDefault(x => x.StatusId == 3);
                     if (meeting != null)
                     {
@@ -188,8 +187,6 @@ namespace Services
                 disconnectWatcher = null;
             }
         }
-
-        public bool IsRecording() => isRecording;
 
         public void SaveTimeSpan(string path, string content)
         {

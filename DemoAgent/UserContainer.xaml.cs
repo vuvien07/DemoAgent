@@ -47,7 +47,8 @@ namespace DemoAgent
             }
             if(lsButton == null)
             {
-                lsButton = new List<ToggleButton>() { btRecord, btMeeting, btLive, btCryto, btProfileUser , btInformationApp , btContactApp };
+                //lsButton = new List<ToggleButton>() { btRecord, btMeeting, btLive, btCryto, btProfileUser , btInformationApp , btContactApp };
+                lsButton = new List<ToggleButton>() { btRecord, btLive, btProfileUser, btInformationApp, btContactApp };
             }
             lbAccount.Content = account.Username;
             lbId.Content = account.Id;
@@ -77,21 +78,21 @@ namespace DemoAgent
             DisableButton((ToggleButton)sender);
         }
 
-        private void btCryto_Click(object sender, RoutedEventArgs e)
-        {
-            EnableButton(lsButton);
-            var userCrypto = new UserCrypto(account);
-            ContainerUser.Child = userCrypto;
-            DisableButton((ToggleButton)sender);
-        }
+        //private void btCryto_Click(object sender, RoutedEventArgs e)
+        //{
+        //    EnableButton(lsButton);
+        //    var userCrypto = new UserCrypto(account);
+        //    ContainerUser.Child = userCrypto;
+        //    DisableButton((ToggleButton)sender);
+        //}
 
-        private void btMeeting_Click(object sender, RoutedEventArgs e)
-        {
-            EnableButton(lsButton);
-            var meeting = new UserMeeting(account);
-            ContainerUser.Child = meeting;
-            DisableButton((ToggleButton)sender);
-        }
+        //private void btMeeting_Click(object sender, RoutedEventArgs e)
+        //{
+        //    EnableButton(lsButton);
+        //    var meeting = new UserMeeting(account);
+        //    ContainerUser.Child = meeting;
+        //    DisableButton((ToggleButton)sender);
+        //}
 
         public void RaiseEvent()
         {
