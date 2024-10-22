@@ -56,7 +56,18 @@
             <Canvas x:Name="WaveformCanvas"  Background="White"  Visibility="Visible" Width="450" Height="140" Margin="0,10,0,10"/>
             <Label x:Name="FileNameLable" FontSize="20" HorizontalAlignment="Center"/>
             <Line X1="0" Y1="0" X2="400" Y2="0" Stroke="LightGray" StrokeThickness="3" HorizontalAlignment="Center" />
-
+            <Label x:Name="NoticeLable" FontSize="15" HorizontalAlignment="Center" Visibility="Collapsed" Width="400" Margin="0,15,0,0">
+                <Label.Content>
+                    <Border Width="390">
+                        <Grid>
+                            <StackPanel Orientation="Vertical">
+                                <TextBox Name="ProcessWavLabel" IsReadOnly="True" HorizontalAlignment="Center" Foreground="Red" Width="390" Background="Transparent" BorderThickness="0"/>
+                                <ProgressBar x:Name="progressBar" Width="390" Height="15" Minimum="0" Maximum="100" IsIndeterminate="True" Value="0" Margin="0,10,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Label.Content>
+            </Label>
 
         </StackPanel>
     </Grid>

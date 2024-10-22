@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Forms;
@@ -39,7 +40,7 @@ namespace DemoAgent
         private TimeSpan timeSpan = TimeSpan.Zero;
         private Account account;
         private List<WavFile> files;
-        private Queue<string> processWavFiles;
+        private List<string> processWavFiles;
         private bool isMeeting;
         private RecordService? recordService = RecordService.Instance;
         private App app = System.Windows.Application.Current as App;
@@ -58,7 +59,9 @@ namespace DemoAgent
             recordService.OnAudioDataAvailable += OnAudioDataAvailable;
             if (processWavFiles == null)
             {
-                processWavFiles = new Queue<string>();
+                recordService.OnProcessAudioTranscribe += OnProcessAudioTranscribe;
+                recordService.OffNoticeLabel += OffNoticeLabel;
+                processWavFiles = new List<string>();
             }
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -157,14 +160,17 @@ namespace DemoAgent
             {
                 DeviceCombobox.ItemsSource = recordService.GetDevices();
             });
+            LoadFiles();
         }
 
         private void OnDeviceDisconnected(EventArrivedEventArgs e)
         {
             Dispatcher.Invoke(() =>
             {
+
                 DeviceCombobox.ItemsSource = recordService.GetDevices();
             });
+            LoadFiles();
         }
 
       /*  private void Timer_Tick(object sender, EventArgs e)
@@ -182,10 +188,7 @@ namespace DemoAgent
                 }
                 else
                 {
-                    if (isMeeting && timer != null)
-                    {
-                        StopRecord();
-                    }
+                    StopRecord();
                 }
             }
             else
@@ -203,8 +206,11 @@ namespace DemoAgent
 
         private void StopRecord()
         {
-            TimerLabel.Content = "Record time:";
-            FileNameLable.Content = "";
+            Dispatcher.Invoke(() =>
+            {
+                TimerLabel.Content = "Record time:";
+                FileNameLable.Content = "";
+            });
             timeSpan = TimeSpan.Zero;
             recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             StopMonitoring();
@@ -381,6 +387,15 @@ namespace DemoAgent
             };
 
             canvas.Children.Insert(0, background); // Đặt nền phía sau đường sóng âm
+        }
+
+        private void OnProcessAudioTranscribe(string fileName)
+        {
+                Dispatcher.Invoke(() =>
+                 {
+                     NoticeLable.Visibility = Visibility.Visible;
+                     ProcessWavLabel.Text = $"Processing transcribe audio for file {fileName}";
+                 });
         }
 
 
