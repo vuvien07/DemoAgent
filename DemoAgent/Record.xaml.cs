@@ -60,7 +60,7 @@ namespace DemoAgent
             if (processWavFiles == null)
             {
                 recordService.OnProcessAudioTranscribe += OnProcessAudioTranscribe;
-                recordService.OffNoticeLabel += OffNoticeLabel;
+               // recordService.OffNoticeLabel += OffNoticeLabel;
                 processWavFiles = new List<string>();
             }
         }
@@ -160,7 +160,7 @@ namespace DemoAgent
             {
                 DeviceCombobox.ItemsSource = recordService.GetDevices();
             });
-            LoadFiles();
+            LoadFiles(null);
         }
 
         private void OnDeviceDisconnected(EventArrivedEventArgs e)
@@ -170,7 +170,7 @@ namespace DemoAgent
 
                 DeviceCombobox.ItemsSource = recordService.GetDevices();
             });
-            LoadFiles();
+            LoadFiles(null);
         }
 
       /*  private void Timer_Tick(object sender, EventArgs e)
