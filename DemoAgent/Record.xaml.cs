@@ -154,14 +154,17 @@ namespace DemoAgent
             {
                 DeviceCombobox.ItemsSource = recordService.GetDevices();
             });
+            LoadFiles();
         }
 
         private void OnDeviceDisconnected(EventArrivedEventArgs e)
         {
             Dispatcher.Invoke(() =>
             {
+
                 DeviceCombobox.ItemsSource = recordService.GetDevices();
             });
+            LoadFiles();
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -178,8 +181,11 @@ namespace DemoAgent
 
         private void StopRecord()
         {
-            TimerLabel.Content = "Record time:";
-            FileNameLable.Content = "";
+            Dispatcher.Invoke(() =>
+            {
+                TimerLabel.Content = "Record time:";
+                FileNameLable.Content = "";
+            });
             timeSpan = TimeSpan.Zero;
             recordService.SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             StopMonitoring();
