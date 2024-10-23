@@ -73,7 +73,6 @@ namespace DemoAgent
             }
             else
             {
-               
                 LoadFiles(null);
                 MessageBoxResult result = await Task.Run(() =>
                 {
@@ -86,11 +85,16 @@ namespace DemoAgent
                 {
                     StartRecord();
                 }
+                else
+                {
+                    (app.currWindow as UserContainer).BtStopRecord.IsEnabled = true;
+                }
             }
         }
 
-        private void StartRecord()
+        public void StartRecord()
         {
+            (app.currWindow as UserContainer).BtStopRecord.IsEnabled = true;
             string wavFile = "", transFile = "";
             string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");

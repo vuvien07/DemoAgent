@@ -54,13 +54,14 @@ namespace DemoAgent
             }
             if (_recordInstance == null)
             {
+                DisableButton(BtStopRecord);
                 _args = new RoutedEventArgs(Window.LoadedEvent);
                 _recordInstance = new Record(account);
                 ContainerUser.Child = _recordInstance;
             }
             lbAccount.Content = account.Username;
             lbId.Content = account.Id;
-            DisableButton(btRecord);
+            
         }
 
         private void btLive_Click(object sender, RoutedEventArgs e)
@@ -188,14 +189,19 @@ namespace DemoAgent
 
         private void BtStopRecord_Clicked(object sender, RoutedEventArgs e)
         {
-           var iconImage = BtPauseRecord.FindName("IcoStopRecord") as ImageAwesome;
-           if(iconImage.Icon == FontAwesomeIcon.Square)
+            var iconImage = BtPauseRecord.FindName("IcoStopRecord") as ImageAwesome;
+            if (iconImage.Icon == FontAwesomeIcon.DotCircleOutline)
+            {
+                _recordInstance.StartRecord();
+            }
+            else
             {
                 _recordInstance.updateIcon(FontAwesome.WPF.FontAwesomeIcon.Pause, BtPauseRecord, "IcoPauseRecord");
                 _recordInstance.updateIcon(FontAwesome.WPF.FontAwesomeIcon.DotCircleOutline, BtStopRecord, "IcoStopRecord");
                 BtPauseRecord.Visibility = Visibility.Collapsed;
                 RecordTime.Visibility = Visibility.Collapsed;
                 _recordInstance.StopRecord();
+                DisableButton(BtStopRecord);
             }
         }
 
