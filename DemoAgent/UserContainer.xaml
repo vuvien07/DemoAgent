@@ -12,8 +12,8 @@
         ResizeMode="NoResize" Width="1000" Height="600" >
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="120"/>
-            <ColumnDefinition Width="880"/>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>
@@ -25,10 +25,10 @@
         <Grid Grid.Row="0" Grid.Column="1" Background="#EAEDF0" MouseLeftButtonDown="Grid_MouseLeftButtonDown">
             <Label Content="Conference Record Safer" Width="172"  HorizontalAlignment="Left" Margin="0,-6,0,0" FontWeight="Bold" FontStyle="Italic" Foreground="#9D9FA1"/>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" >
-                <Button  Width="37" Click="MinimizeButton_Click" Style="{DynamicResource CustomBtnClose}">
+                <Button Width="37" Click="MinimizeButton_Click" Style="{DynamicResource CustomBtnClose}">
                     <fa:ImageAwesome  Icon="WindowMinimize" Width="12" Foreground="Black"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
-                <Button  Width="27" Click="CloseButton_Click"  Style="{DynamicResource CustomBtnClose}" >
+                <Button Width="27" Click="CloseButton_Click"  Style="{DynamicResource CustomBtnClose}" >
                     <fa:ImageAwesome  Icon="Close" Width="12" Foreground="Black"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
             </StackPanel>
@@ -37,38 +37,32 @@
         <StackPanel Name="spMenu" Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Background="#3F8AFA" VerticalAlignment="Stretch">
             <Grid Background="#3F8AFA" >
                 <Image Source="Images/fauget1.png" Margin="1,0,65,3"/>
-                <Label Content="Record" FontStyle="Italic" FontWeight="Bold" Foreground="Black" Margin="47,4,20,10"/>
-                <Label Content="Safer" FontStyle="Oblique" FontWeight="Bold" Foreground="White" Margin="60,21,0,0"/>
+                <Label Content="Record" FontStyle="Italic" FontWeight="Bold" Foreground="Black" Margin="77,0,0,14"/>
+                <Label Content="Safer" FontStyle="Oblique" FontWeight="Bold" Foreground="White" Margin="75,21,-15,0"/>
             </Grid>
             <Grid Width="70" Height="70" MouseEnter="Grid_MouseEnter" MouseLeave="Grid_MouseLeave">
                 <fa:ImageAwesome  Icon="UserSecret" Width="25" Foreground="White"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 <Label Content="Account"   FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,42,0,0"/>
             </Grid>
 
-            <!--<ToggleButton x:Name="btCryto" Margin="0,10,0,10" Click="btCryto_Click"  Height="36" Width="120"  Style="{DynamicResource UserContainerMenu}" >
-                <StackPanel Orientation="Horizontal">
-                    <fa:ImageAwesome Icon="Lock" Height="20" Width="20" Foreground="White" Margin="0,0,10,0"/>
-                    <TextBlock Text="Crypto " VerticalAlignment="Center"/>
-                </StackPanel>
-            </ToggleButton>-->
-            <!--<ToggleButton x:Name="btMeeting" Click="btMeeting_Click" Margin="0,0,0,10"  Height="36" Style="{DynamicResource UserContainerMenu}" >
-                <StackPanel Orientation="Horizontal">
-                    <fa:ImageAwesome Icon="Bullhorn" Height="20" Width="20" Foreground="White" Margin="0,0,5,0"/>
-                    <TextBlock Text="Meeting" VerticalAlignment="Center"/>
-                </StackPanel>
-            </ToggleButton>-->
-
             <ToggleButton x:Name="btRecord" Margin="0,0,0,10" Click="btRecord_Click"  Height="36" Style="{DynamicResource UserContainerMenu}" >
                 <StackPanel Orientation="Horizontal">
+                    <fa:ImageAwesome Icon="Bullhorn" Height="20" Width="20" Foreground="White"  Margin="0,0,10,0"/>
+                    <TextBlock Text="Ghi âm" VerticalAlignment="Center" Width="70"/>
+                </StackPanel>
+            </ToggleButton>
+
+            <ToggleButton x:Name="btUserRecord" Margin="0,0,0,10"  Height="36" Style="{DynamicResource UserContainerMenu}" Click="btUserRecord_Click" >
+                <StackPanel Orientation="Horizontal">
                     <fa:ImageAwesome Icon="FileSoundOutline" Height="20" Width="20" Foreground="White"  Margin="0,0,10,0"/>
-                    <TextBlock Text="Record" VerticalAlignment="Center" Width="41"/>
+                    <TextBlock Text="Tệp Ghi Âm" VerticalAlignment="Center" Width="70"/>
                 </StackPanel>
             </ToggleButton>
 
             <ToggleButton x:Name="btLive" Margin="0,0,0,10" Click="btLive_Click"  Height="36" Style="{DynamicResource UserContainerMenu}">
                 <StackPanel Orientation="Horizontal">
                     <fa:ImageAwesome Icon="Book" Height="20" Width="20" Foreground="White" Margin="0,0,10,0"/>
-                    <TextBlock Text="Text" VerticalAlignment="Center" Width="37"/>
+                    <TextBlock Text="Text" VerticalAlignment="Center" Width="70"/>
                 </StackPanel>
             </ToggleButton>
             <Line X1="0" Y1="0" X2="100" Y2="0" Stroke="White" StrokeThickness="2" HorizontalAlignment="Center" />

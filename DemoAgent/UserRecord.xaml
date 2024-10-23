@@ -1,0 +1,49 @@
+﻿<UserControl x:Class="DemoAgent.UserRecord"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DemoAgent"
+             xmlns:fa="http://schemas.fontawesome.io/icons/"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Background="WhiteSmoke">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="800"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="450"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Grid.Column="0">
+            <StackPanel Orientation="Horizontal">
+                <fa:FontAwesome Icon="Folder" Foreground="Orange" FontSize="30" Margin="10,5,0,0"/>
+                <Label Content="Bản ghi gần đây" FontSize="20" FontWeight="Bold"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <fa:FontAwesome Icon="Search" FontSize="20" Margin="5,3,5,0" />
+                <TextBox x:Name="searchRecord" Height="30" Width="250" TextChanged="searchRecord_TextChanged"/>
+            </StackPanel>
+            <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Height="365">
+                <ListView x:Name="lvRecordings" Width="290" BorderThickness="0" Background="Transparent"  MouseWheel="lvRecordings_MouseWheel" >
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13"/>
+                                <TextBlock Text="{Binding Size}" FontStyle="Italic" FontSize="12"/>
+                                <TextBlock Text="{Binding Description}" FontSize="12"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Open in Folder" Click="MenuItemOpenFolder_Click"/>
+                            <MenuItem Header="Decode" Click="DecryptWavFile"/>
+                            <MenuItem Header="Delete" Click="MenuItemDelete_Click" />
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                </ListView>
+            </ScrollViewer>
+
+        </StackPanel>
+    </Grid>
+</UserControl>
