@@ -50,9 +50,6 @@ namespace DemoAgent
         public string finalPath;
         public string _recordMode;
         public int _count = 0;
-        public event Action<float[]> OnAudioDataAvailable;
-        public event Action<string> OnProcessAudioTranscribe;
-        public event Action OnOffNoticeLabel;
         public string transcriptionPath;
         public bool _isCompleteTask = false;
         private long totalBytesRecorded = 0;
@@ -70,11 +67,8 @@ namespace DemoAgent
                 timeSpan = TimeSpan.Zero;
                 SaveTimeSpan(System.IO.Path.Combine(Environment.CurrentDirectory, "timeSpan.txt"), timeSpan.ToString(@"hh\:mm\:ss"));
             }
-            OnAudioDataAvailable += AudioDataAvailable;
             if (processWavFiles == null)
             {
-                OnProcessAudioTranscribe += ProcessAudioTranscribe;
-                OnOffNoticeLabel += OffNoticeLabel;
                 processWavFiles = new List<string>();
             }
         }
@@ -304,12 +298,6 @@ namespace DemoAgent
              });
         }
 
-
-        private void AudioDataAvailable(float[] audioData)
-        {
-            Dispatcher.Invoke(() => UpdateWaveform(audioData));
-        }
-
         public void StartRecording(int selectedDevice, string outputFilePath)
         {
             this.finalPath = outputFilePath;
@@ -401,7 +389,10 @@ namespace DemoAgent
                 short sample = BitConverter.ToInt16(e.Buffer, index);
                 audioData[index / 2] = sample / 32768f;
             }
-            OnAudioDataAvailable?.Invoke(audioData);
+            Dispatcher.Invoke(() =>
+            {
+                UpdateWaveform(audioData);
+            });
         }
 
         public void StopRecording(string finalePath, Account account)
@@ -576,7 +567,7 @@ namespace DemoAgent
                 tasks.Add(ProcessSingleFileAsync(processWavFiles, file, transPath, app));
             }
             await Task.WhenAll(tasks);
-            OnOffNoticeLabel?.Invoke();
+            OffNoticeLabel();
         }
         public void fileWavProcess(string wavPath)
         {
@@ -597,7 +588,7 @@ namespace DemoAgent
             await semaphore.WaitAsync();
             try
             {
-                OnProcessAudioTranscribe?.Invoke(wavPath);
+                ProcessAudioTranscribe(wavPath);
                 string result = await performRecognizeText(wavPath, app._model, app._processor, app._device, app._punctuationModel);
                 await Task.Run(() =>
                 {
