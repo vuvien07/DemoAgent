@@ -1,7 +1,6 @@
 ﻿using DemoAgent.Util;
 using Microsoft.Identity.Client.NativeInterop;
 using Models;
-using Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,15 +28,13 @@ namespace DemoAgent
     /// </summary>
     public partial class UserRecord : System.Windows.Controls.UserControl
     {
-        private RecordService? recordService;
         private List<WavFile> files;
         private Models.Account account;
+        private App app = (App)System.Windows.Application.Current;
         public UserRecord(Models.Account account)
         {
             InitializeComponent();
-            recordService = RecordService.Instance;
             this.account = account;
-            LoadFiles(null);
         }
 
         private void MenuItemDelete_Click(object sender, RoutedEventArgs e)
@@ -50,7 +47,7 @@ namespace DemoAgent
                     DialogResult dialogResult = System.Windows.Forms.MessageBox.Show($"Are you sure to delete this file at {selectedFile.Path}?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                     if (dialogResult == DialogResult.Yes)
                     {
-                        recordService.RemoveWavFile(files, selectedFile.Path);
+                        (app.currWindow as UserContainer)._recordInstance.RemoveWavFile(files, selectedFile.Path);
                         LoadFiles(null);
                     }
                 }
@@ -109,7 +106,7 @@ namespace DemoAgent
             {
                 Directory.CreateDirectory(directory);
             }
-            files = recordService.GetAllWaveFilesInDirectory(directory, name);
+            files = (app.currWindow as UserContainer)._recordInstance.GetAllWaveFilesInDirectory(directory, name);
             lvRecordings.ItemsSource = files;
         }
 
@@ -144,6 +141,11 @@ namespace DemoAgent
                     }
                 }
             }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            LoadFiles(null);
         }
     }
 }

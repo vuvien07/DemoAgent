@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Models;
 using NAudio.CoreAudioApi;
 using Python.Runtime;
-using Services;
 using System.ComponentModel;
 using System.Configuration;
 using System.Data;
@@ -84,12 +83,11 @@ namespace DemoAgent
                 {
                     if (sender is Window window)
                     {
-                        RecordService recordService = RecordService.Instance;
-
+                        var userContainer = (app.currWindow as UserContainer);
                         // Dừng ghi âm nếu đang ghi
-                        if (app?.account != null && recordService._isRecording)
+                        if (app?.account != null && userContainer._recordInstance._isRecording)
                         {
-                            recordService.StopRecording(recordService.finalPath, app.account);
+                            userContainer._recordInstance.StopRecording(userContainer._recordInstance.finalPath, app.account);
                         }
                         // Ẩn cửa sổ trước khi tắt
                         window.Visibility = Visibility.Hidden;

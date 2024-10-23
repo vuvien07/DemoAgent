@@ -3,7 +3,6 @@ using HotelManagement.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualBasic.ApplicationServices;
 using Models;
-using Services;
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
@@ -35,9 +34,10 @@ namespace DemoAgent
     public partial class UserContainer : Window
     {
         private Account account;
-        private RecordService? recordService;
         public List<ToggleButton> lsButton;
-        private Record? _recordInstance = null;
+        public Record? _recordInstance = null;
+        private UserRecord? _userRecordInstance = null;
+        private SpeechLive? _speechLiveInstance = null;
         private RoutedEventArgs? _args = null;
 
         public UserContainer(Account account)
@@ -45,11 +45,6 @@ namespace DemoAgent
             InitializeComponent();
             (System.Windows.Application.Current as App).SetCurrWindow(this);
             this.account = account;
-            if (recordService == null)
-            {
-                recordService = RecordService.Instance;
-                recordService.InitializeService(account);
-            }
             if (lsButton == null)
             {
                 lsButton = new List<ToggleButton>() { btRecord, btLive, btProfileUser, btInformationApp, btContactApp, btUserRecord };
@@ -68,7 +63,11 @@ namespace DemoAgent
         private void btLive_Click(object sender, RoutedEventArgs e)
         {
             EnableButton(lsButton);
-            ContainerUser.Child = new SpeechLive(account);
+            if (_speechLiveInstance == null)
+            {
+                _speechLiveInstance = new SpeechLive(account);
+            }
+            ContainerUser.Child = _speechLiveInstance;
             DisableButton((ToggleButton)sender);
         }
 
@@ -212,20 +211,24 @@ namespace DemoAgent
             {
                 _recordInstance.updateIcon(FontAwesome.WPF.FontAwesomeIcon.Play, BtPauseRecord, "IcoPauseRecord");
                 _recordInstance.timer.Stop();
-                recordService.waveInEvent.DataAvailable -= recordService.OnDataAvailable;
+                _recordInstance.waveInEvent.DataAvailable -= _recordInstance.OnDataAvailable;
             }
             else
             {
                 _recordInstance.updateIcon(FontAwesome.WPF.FontAwesomeIcon.Pause, BtPauseRecord, "IcoPauseRecord");
                 _recordInstance.timer.Start();
-                recordService.waveInEvent.DataAvailable += recordService.OnDataAvailable;
+                _recordInstance.waveInEvent.DataAvailable += _recordInstance.OnDataAvailable;
             }
         }
 
         private void btUserRecord_Click(object sender, RoutedEventArgs e)
         {
             EnableButton(lsButton);
-            ContainerUser.Child = new UserRecord(account);
+            if (_userRecordInstance == null)
+            {
+               _userRecordInstance = new UserRecord(account);
+            }
+            ContainerUser.Child = _userRecordInstance;
             DisableButton((ToggleButton)sender);
         }
     }
