@@ -91,7 +91,6 @@ namespace DemoAgent
                 if (authenticatedAccount.RoleId == 2)
                 {
                     UserContainer user = new UserContainer(authenticatedAccount);
-                    (System.Windows.Application.Current as App).SetCurrWindow(user);
                     (System.Windows.Application.Current as App).SetAccount(authenticatedAccount);
                     (System.Windows.Application.Current as App).SubscribeClosingEvent(user);
                     Window currentWindow = Window.GetWindow(this);

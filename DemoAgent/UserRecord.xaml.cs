@@ -1,0 +1,149 @@
+﻿using DemoAgent.Util;
+using Microsoft.Identity.Client.NativeInterop;
+using Models;
+using Services;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Forms;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using Util;
+using static System.Net.WebRequestMethods;
+
+namespace DemoAgent
+{
+    /// <summary>
+    /// Interaction logic for UserRecord.xaml
+    /// </summary>
+    public partial class UserRecord : System.Windows.Controls.UserControl
+    {
+        private RecordService? recordService;
+        private List<WavFile> files;
+        private Models.Account account;
+        public UserRecord(Models.Account account)
+        {
+            InitializeComponent();
+            recordService = RecordService.Instance;
+            this.account = account;
+            LoadFiles(null);
+        }
+
+        private void MenuItemDelete_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedFile = lvRecordings.SelectedValue as WavFile;
+            if (selectedFile != null)
+            {
+                try
+                {
+                    DialogResult dialogResult = System.Windows.Forms.MessageBox.Show($"Are you sure to delete this file at {selectedFile.Path}?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                    if (dialogResult == DialogResult.Yes)
+                    {
+                        recordService.RemoveWavFile(files, selectedFile.Path);
+                        LoadFiles(null);
+                    }
+                }
+                catch (Exception) { }
+            }
+        }
+
+        private void MenuItemOpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedFile = lvRecordings.SelectedValue as WavFile;
+            if (selectedFile != null)
+            {
+                try
+                {
+                    // Mở thư mục chứa file đã chọn
+                    string directoryPath = System.IO.Path.GetDirectoryName(selectedFile.Path);
+                    if (Directory.Exists(directoryPath))
+                    {
+                        var processStartInfo = new ProcessStartInfo
+                        {
+                            FileName = directoryPath,
+                            UseShellExecute = true
+                        };
+                        Process.Start(processStartInfo);
+                    }
+                    else
+                    {
+                        EventUtil.printNotice("Thư mục không tồn tại!", MessageUtil.ERROR);
+                    }
+                }
+                catch (Exception)
+                {
+                    EventUtil.printNotice("Đã xảy ra lỗi!", MessageUtil.ERROR);
+                }
+            }
+        }
+
+        private void searchRecord_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            LoadFiles(searchRecord.Text);
+        }
+
+        private void lvRecordings_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (scrollViewer != null)
+            {
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
+                e.Handled = false;
+            }
+        }
+
+        private void LoadFiles(string? name)
+        {
+            string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
+            if (!System.IO.File.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            files = recordService.GetAllWaveFilesInDirectory(directory, name);
+            lvRecordings.ItemsSource = files;
+        }
+
+
+
+        private void DecryptWavFile(object sender, RoutedEventArgs e)
+        {
+            var selectedFile = lvRecordings.SelectedValue as WavFile;
+            if (selectedFile != null)
+            {
+                string path = selectedFile.Path;
+                if (path != null && System.IO.File.Exists(path))
+                {
+                    using (System.Windows.Forms.FolderBrowserDialog folderDialog = new System.Windows.Forms.FolderBrowserDialog())
+                    {
+                        if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                        {
+                            string folderPath = folderDialog.SelectedPath;
+                            string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
+                            string decryptedFilePath = System.IO.Path.Combine(folderPath, fileName + ".wav");
+
+                            try
+                            {
+                                UtilHelper.DecryptFile(path, decryptedFilePath, account.PrivateKey);
+                                EventUtil.printNotice($"The file has been successfully decrypted and saved at {folderPath}", MessageUtil.SUCCESS);
+                            }
+                            catch (Exception ex)
+                            {
+                                EventUtil.printNotice($"Error decrypting file: {ex.Message}", MessageUtil.ERROR);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

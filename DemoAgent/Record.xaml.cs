@@ -39,10 +39,10 @@ namespace DemoAgent
         public DispatcherTimer timer;
         private TimeSpan timeSpan = TimeSpan.Zero;
         private Account account;
-        private List<WavFile> files;
         private List<string> processWavFiles;
         private RecordService? recordService = RecordService.Instance;
         private App app = System.Windows.Application.Current as App;
+        private bool _isManualRecord = false;
 
         public Record(Account account)
         {
@@ -71,10 +71,8 @@ namespace DemoAgent
             {
                 UpdateUIForRecording();
             }
-            else
-            {
-               
-                LoadFiles(null);
+            if(!_isManualRecord) {
+                _isManualRecord = true;
                 MessageBoxResult result = await Task.Run(() =>
                 {
                     return System.Windows.MessageBox.Show(
@@ -86,11 +84,16 @@ namespace DemoAgent
                 {
                     StartRecord();
                 }
+                else
+                {
+                    (app.currWindow as UserContainer).BtStopRecord.IsEnabled = true;
+                }
             }
         }
 
-        private void StartRecord()
+        public void StartRecord()
         {
+            (app.currWindow as UserContainer).BtStopRecord.IsEnabled = true;
             string wavFile = "", transFile = "";
             string recordDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
             string transcriptDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
@@ -149,7 +152,6 @@ namespace DemoAgent
             {
                 DeviceCombobox.ItemsSource = recordService.GetDevices();
             });
-            LoadFiles(null);
         }
 
         private void OnDeviceDisconnected(EventArrivedEventArgs e)
@@ -159,7 +161,6 @@ namespace DemoAgent
 
                 DeviceCombobox.ItemsSource = recordService.GetDevices();
             });
-            LoadFiles(null);
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -189,7 +190,6 @@ namespace DemoAgent
             recordService.StopWatching();
             processWavFiles.Add(recordService.finalPath);
             recordService.fileWavProcess(recordService.finalPath);
-            LoadFiles(null);
             Task.Run(async () =>
            {
                try
@@ -228,50 +228,6 @@ namespace DemoAgent
 
         }
 
-        private void LoadFiles(string? name)
-        {
-            string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Recording");
-            if (!File.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-            files = recordService.GetAllWaveFilesInDirectory(directory, name);
-            lvRecordings.ItemsSource = files;
-        }
-
-
-
-        private void DecryptWavFile(object sender, RoutedEventArgs e)
-        {
-            var selectedFile = lvRecordings.SelectedValue as WavFile;
-            if (selectedFile != null)
-            {
-                string path = selectedFile.Path;
-                if (path != null && File.Exists(path))
-                {
-                    using (System.Windows.Forms.FolderBrowserDialog folderDialog = new System.Windows.Forms.FolderBrowserDialog())
-                    {
-                        if (folderDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                        {
-                            string folderPath = folderDialog.SelectedPath;
-                            string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
-                            string decryptedFilePath = System.IO.Path.Combine(folderPath, fileName + ".wav");
-
-                            try
-                            {
-                                UtilHelper.DecryptFile(path, decryptedFilePath, account.PrivateKey);
-                                EventUtil.printNotice($"The file has been successfully decrypted and saved at {folderPath}", MessageUtil.SUCCESS);
-                            }
-                            catch (Exception ex)
-                            {
-                                EventUtil.printNotice($"Error decrypting file: {ex.Message}", MessageUtil.ERROR);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         public void updateIcon(FontAwesomeIcon icon, ToggleButton button, string target)
         {
             var iconImage = button.FindName(target) as ImageAwesome;
@@ -281,14 +237,6 @@ namespace DemoAgent
             }
         }
 
-        private void lvRecordings_MouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            if (scrollViewer != null)
-            {
-                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
-                e.Handled = false;
-            }
-        }
         private void UpdateWaveform(float[] audioData)
         {
             // Xóa canvas cũ
@@ -346,59 +294,5 @@ namespace DemoAgent
         {
             Dispatcher.Invoke(() => UpdateWaveform(audioData));
         }
-
-        private void MenuItemDelete_Click(object sender, RoutedEventArgs e)
-        {
-            var selectedFile = lvRecordings.SelectedValue as WavFile;
-            if (selectedFile != null)
-            {
-                try
-                {
-                    DialogResult dialogResult = System.Windows.Forms.MessageBox.Show($"Are you sure to delete this file at {selectedFile.Path}?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                    if (dialogResult == DialogResult.Yes)
-                    {
-                        recordService.RemoveWavFile(files, selectedFile.Path);
-                        LoadFiles(null);
-                    }
-                }
-                catch (Exception) { }
-            }
-        }
-
-        private void MenuItemOpenFolder_Click(object sender, RoutedEventArgs e)
-        {
-            var selectedFile = lvRecordings.SelectedValue as WavFile;
-            if (selectedFile != null)
-            {
-                try
-                {
-                    // Mở thư mục chứa file đã chọn
-                    string directoryPath = System.IO.Path.GetDirectoryName(selectedFile.Path);
-                    if (Directory.Exists(directoryPath))
-                    {
-                        var processStartInfo = new ProcessStartInfo
-                        {
-                            FileName = directoryPath,
-                            UseShellExecute = true
-                        };
-                        Process.Start(processStartInfo);
-                    }
-                    else
-                    {
-                        EventUtil.printNotice("Thư mục không tồn tại!", MessageUtil.ERROR);
-                    }
-                }
-                catch (Exception)
-                {
-                    EventUtil.printNotice("Đã xảy ra lỗi!", MessageUtil.ERROR);
-                }
-            }
-        }
-
-        private void searchRecord_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            LoadFiles(searchRecord.Text);
-        }
-
     }
 }

@@ -1,6 +1,7 @@
 ﻿using FontAwesome.WPF;
 using HotelManagement.Util;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualBasic.ApplicationServices;
 using Models;
 using Services;
 using System;
@@ -35,13 +36,14 @@ namespace DemoAgent
     {
         private Account account;
         private RecordService? recordService;
-        private List<ToggleButton> lsButton;
+        public List<ToggleButton> lsButton;
         private Record? _recordInstance = null;
         private RoutedEventArgs? _args = null;
 
         public UserContainer(Account account)
         {
             InitializeComponent();
+            (System.Windows.Application.Current as App).SetCurrWindow(this);
             this.account = account;
             if (recordService == null)
             {
@@ -50,17 +52,17 @@ namespace DemoAgent
             }
             if (lsButton == null)
             {
-                lsButton = new List<ToggleButton>() { btRecord, btLive, btProfileUser, btInformationApp, btContactApp };
+                lsButton = new List<ToggleButton>() { btRecord, btLive, btProfileUser, btInformationApp, btContactApp, btUserRecord };
             }
+            lbAccount.Content = account.Username;
+            lbId.Content = account.Id;
             if (_recordInstance == null)
             {
+                DisableButton(BtStopRecord);
                 _args = new RoutedEventArgs(Window.LoadedEvent);
                 _recordInstance = new Record(account);
                 ContainerUser.Child = _recordInstance;
             }
-            lbAccount.Content = account.Username;
-            lbId.Content = account.Id;
-            DisableButton(btRecord);
         }
 
         private void btLive_Click(object sender, RoutedEventArgs e)
@@ -72,17 +74,17 @@ namespace DemoAgent
 
         private void btRecord_Click(object sender, RoutedEventArgs e)
         {
+            EnableButton(lsButton);
             Application.Current.Dispatcher.Invoke(() =>
             {
-                ContainerUser.Child = _recordInstance;
-                EnableButton(lsButton);
                 DisableButton((ToggleButton)sender);
+                ContainerUser.Child = _recordInstance;
                 _recordInstance.Loaded -= _recordInstance.Window_Loaded;
                 _recordInstance.Loaded += _recordInstance.Window_Loaded;
             });
         }
 
-        private void DisableButton(ToggleButton button)
+        public void DisableButton(ToggleButton button)
         {
             if (button.IsEnabled)
             {
@@ -97,7 +99,7 @@ namespace DemoAgent
             }
         }
 
-        private void EnableButton(List<ToggleButton> buttons)
+        public void EnableButton(List<ToggleButton> buttons)
         {
             foreach (var button in buttons)
             {
@@ -188,8 +190,12 @@ namespace DemoAgent
 
         private void BtStopRecord_Clicked(object sender, RoutedEventArgs e)
         {
-           var iconImage = BtPauseRecord.FindName("IcoStopRecord") as ImageAwesome;
-           if(iconImage.Icon == FontAwesomeIcon.Square)
+            var iconImage = BtPauseRecord.FindName("IcoStopRecord") as ImageAwesome;
+            if (iconImage.Icon == FontAwesomeIcon.DotCircleOutline)
+            {
+                _recordInstance.StartRecord();
+            }
+            else
             {
                 _recordInstance.updateIcon(FontAwesome.WPF.FontAwesomeIcon.Pause, BtPauseRecord, "IcoPauseRecord");
                 _recordInstance.updateIcon(FontAwesome.WPF.FontAwesomeIcon.DotCircleOutline, BtStopRecord, "IcoStopRecord");
@@ -214,6 +220,13 @@ namespace DemoAgent
                 _recordInstance.timer.Start();
                 recordService.waveInEvent.DataAvailable += recordService.OnDataAvailable;
             }
+        }
+
+        private void btUserRecord_Click(object sender, RoutedEventArgs e)
+        {
+            EnableButton(lsButton);
+            ContainerUser.Child = new UserRecord(account);
+            DisableButton((ToggleButton)sender);
         }
     }
 }
