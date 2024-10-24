@@ -90,13 +90,11 @@ namespace DemoAgent
             LoadFiles(searchRecord.Text);
         }
 
-        private void lvRecordings_MouseWheel(object sender, MouseWheelEventArgs e)
+        private void LvRecordings_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (scrollViewer != null)
-            {
-                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta);
-                e.Handled = false;
-            }
+            scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta / 3);
+
+            e.Handled = true;
         }
 
         private void LoadFiles(string? name)
@@ -106,7 +104,21 @@ namespace DemoAgent
             {
                 Directory.CreateDirectory(directory);
             }
-            files = (app.currWindow as UserContainer)._recordInstance.GetAllWaveFilesInDirectory(directory, name);
+            files = (app.currWindow as UserContainer)._recordInstance.GetAllWaveFilesInDirectory(directory);
+            if (!string.IsNullOrEmpty(name))
+            {
+                DateTime searchDate;
+                bool isDateSearch = DateTime.TryParse(name, out searchDate);
+
+                if (isDateSearch)
+                {
+                    files = files.Where(x => DateTime.Parse(x.Description).Date == searchDate.Date).ToList();
+                }
+                else
+                {
+                    files = files.Where(x => x.Name.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+            }
             lvRecordings.ItemsSource = files;
         }
 

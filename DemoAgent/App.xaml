@@ -5,6 +5,29 @@
              >
     <Application.Resources>
         <ResourceDictionary>
+            <Style x:Key="UserRecordMenu" TargetType="ToggleButton">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="white"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <!-- Bỏ viền -->
+                <Setter Property="Padding" Value="10,5"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <!-- Thay đổi con trỏ khi hover -->
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border Background="{TemplateBinding Background}" 
+                      CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+
             <Style x:Key="CustomButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="#0091FF"/>
                 <Setter Property="Foreground" Value="White"/>

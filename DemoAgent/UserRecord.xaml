@@ -6,34 +6,57 @@
              xmlns:local="clr-namespace:DemoAgent"
              xmlns:fa="http://schemas.fontawesome.io/icons/"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Loaded="Window_Loaded">
+             d:DesignHeight="550" d:DesignWidth="850" Loaded="Window_Loaded"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+     TextElement.FontWeight="Regular"
+     TextElement.FontSize="13"
+     TextOptions.TextFormattingMode="Ideal"
+     TextOptions.TextRenderingMode="Auto"
+     Background="{DynamicResource MaterialDesignPaper}"
+     FontFamily="{DynamicResource MaterialDesignFont}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="MaterialDesignResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid Background="WhiteSmoke">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="800"/>
+            <ColumnDefinition Width="850"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="450"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="500"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Grid.Column="0">
-            <StackPanel Orientation="Horizontal">
-                <fa:FontAwesome Icon="Folder" Foreground="Orange" FontSize="30" Margin="10,5,0,0"/>
-                <Label Content="Bản ghi gần đây" FontSize="20" FontWeight="Bold"/>
-            </StackPanel>
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
+            <fa:FontAwesome Icon="Folder" Foreground="Orange" FontSize="30" Margin="10,5,0,0"/>
+            <Label Content="Bản ghi gần đây" FontSize="20" FontWeight="Bold"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="0" Background="White" >
             <StackPanel Orientation="Horizontal">
                 <fa:FontAwesome Icon="Search" FontSize="20" Margin="5,3,5,0" />
-                <TextBox x:Name="searchRecord" Height="30" Width="250" TextChanged="searchRecord_TextChanged"/>
+                <TextBox x:Name="searchRecord" Height="30" Width="370" TextChanged="searchRecord_TextChanged"/>
             </StackPanel>
-            <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Height="365">
-                <ListView x:Name="lvRecordings" Width="290" BorderThickness="0" Background="Transparent"  MouseWheel="lvRecordings_MouseWheel" >
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel>
-                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13"/>
-                                <TextBlock Text="{Binding Size}" FontStyle="Italic" FontSize="12"/>
-                                <TextBlock Text="{Binding Description}" FontSize="12"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
+            <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Height="450" Width="850" Margin="0,10,0,10">
+                <ListView x:Name="lvRecordings"  BorderThickness="0" Background="Transparent"  PreviewMouseWheel="LvRecordings_PreviewMouseWheel" >
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="STT" Width="100"  DisplayMemberBinding="{Binding Id}"/>
+                            <GridViewColumn Header="Name" Width="200" DisplayMemberBinding="{Binding Name}"/>
+                            <GridViewColumn Header="Time" Width="150" DisplayMemberBinding="{Binding Description}"/>
+                            <GridViewColumn Header="Type" Width="100" DisplayMemberBinding="{ Binding Type}"/>
+                            <GridViewColumn Header="Size" Width="100" DisplayMemberBinding="{Binding Size}"/>
+                            <GridViewColumn Header="Path" Width="auto">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path}" TextWrapping="NoWrap"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
                     <ListView.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Open in Folder" Click="MenuItemOpenFolder_Click"/>
@@ -43,7 +66,6 @@
                     </ListView.ContextMenu>
                 </ListView>
             </ScrollViewer>
-
         </StackPanel>
     </Grid>
 </UserControl>
