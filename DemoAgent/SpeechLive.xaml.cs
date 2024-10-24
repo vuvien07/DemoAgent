@@ -76,16 +76,31 @@ namespace DemoAgent
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            Load();
+            Load(null);
         }
-        public void Load()
+        public void Load(string? name)
         {
             string directory = System.IO.Path.Combine(Environment.CurrentDirectory, "Transcription");
             if (!System.IO.File.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
-            lvTrans.ItemsSource = GetAllTextFilesInDirectory(directory);
+            List<TextFile> listTxt = GetAllTextFilesInDirectory(directory);
+            if (!string.IsNullOrEmpty(name))
+            {
+                DateTime searchDate;
+                bool isDateSearch = DateTime.TryParse(name, out searchDate);
+
+                if (isDateSearch)
+                {
+                    listTxt = listTxt.Where(x => DateTime.Parse(x.Description).Date == searchDate.Date).ToList();
+                }
+                else
+                {
+                    listTxt = listTxt.Where(x => x.Name.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+            }
+            lvTrans.ItemsSource = listTxt;
         }
         private void MenuItemOpenFolder_Click(object sender, RoutedEventArgs e)
         {
@@ -149,7 +164,7 @@ namespace DemoAgent
                                     files.Remove(text);
                                 }
                             }
-                            Load();
+                            Load(null);
                             EventUtil.printNotice($"Remove file with path {selectedFile.Path} successfully!", MessageUtil.SUCCESS);
                         }
                         catch (Exception ex)
@@ -200,6 +215,7 @@ namespace DemoAgent
 
         private void searchTrans_TextChanged(object sender, TextChangedEventArgs e)
         {
+            Load(searchTrans.Text);
         }
     }
 }
