@@ -13,8 +13,8 @@
             <ColumnDefinition Width="500"/>
         </Grid.ColumnDefinitions>-->
         <Grid.RowDefinitions>
-            <RowDefinition Height="100"/>
-            <RowDefinition Height="450"/>
+            <RowDefinition Height="80"/>
+            <RowDefinition Height="470"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="850"/>
@@ -28,8 +28,7 @@
             </StackPanel>
         </StackPanel>
         <StackPanel  Grid.Row="1" Grid.Column="0" Background="White">
-            
-        <Canvas x:Name="WaveformCanvas"  Background="#F5FBFC"  Visibility="Visible" Width="auto" Height="360" Margin="0,0,0,10"/>
+            <Canvas x:Name="WaveformCanvas"  Background="#F5FBFC"  Visibility="Visible" Width="auto" Height="360" Margin="0,0,0,10"/>
             <Label x:Name="FileNameLable" FontSize="20" HorizontalAlignment="Center"/>
             <Line X1="0" Y1="0" X2="400" Y2="0" Stroke="LightGray" StrokeThickness="3" HorizontalAlignment="Center" />
             <Label x:Name="NoticeLable" FontSize="15" HorizontalAlignment="Center" Visibility="Collapsed" Width="400" Margin="0,15,0,0">
