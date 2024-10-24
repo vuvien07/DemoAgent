@@ -12,7 +12,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Management;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
@@ -201,17 +200,17 @@ namespace DemoAgent
             processWavFiles.Add(finalPath);
             fileWavProcess(finalPath);
             Task.Run(async () =>
-           {
-               try
-               {
-                   await processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
-               }
-               catch (Exception ex)
-               {
-                   // Xử lý ngoại lệ nếu cần
-                   Console.WriteLine($"Error: {ex.Message}");
-               }
-           });
+            {
+                try
+                {
+                    await processTranscribeAllWavFiles(processWavFiles, transcriptDirectory, app);
+                }
+                catch (Exception ex)
+                {
+                    // Xử lý ngoại lệ nếu cần
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
+            });
         }
 
         private void OffNoticeLabel()
@@ -293,10 +292,10 @@ namespace DemoAgent
         private void ProcessAudioTranscribe(string fileName)
         {
             Dispatcher.Invoke(() =>
-             {
-                 NoticeLable.Visibility = Visibility.Visible;
-                 ProcessWavLabel.Text = $"Processing transcribe audio for file {fileName}";
-             });
+            {
+                NoticeLable.Visibility = Visibility.Visible;
+                ProcessWavLabel.Text = $"Processing transcribe audio for file {fileName}";
+            });
         }
 
         public void StartRecording(int selectedDevice, string outputFilePath)
@@ -590,7 +589,7 @@ namespace DemoAgent
             try
             {
                 ProcessAudioTranscribe(wavPath);
-                string result = await performRecognizeTextUsingAPI("http://localhost:8000/convertAudio", wavPath, "vi");
+                string result = await performRecognizeText(wavPath, app._model, app._processor, app._device, app._punctuationModel);
                 await Task.Run(() =>
                 {
                     using (StreamWriter sw = new StreamWriter(transPath))
@@ -611,32 +610,86 @@ namespace DemoAgent
             }
         }
 
-        private async Task<string> performRecognizeTextUsingAPI(string url, string wavPath, string language)
+        private async Task<string> performRecognizeText(string wavPath, dynamic model, dynamic processor, dynamic device, dynamic punctuationModel)
         {
-            using (HttpClient client = new HttpClient())
-            using (MultipartFormDataContent content = new MultipartFormDataContent())
+            return await Task<string>.Run(() =>
             {
-                // Đọc tệp nhị phân 
-                byte[] fileBytes = File.ReadAllBytes(wavPath);
-                ByteArrayContent byteContent = new ByteArrayContent(fileBytes);
-                byteContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-
-                // Thêm tệp và tham số vào nội dung 
-                content.Add(byteContent, "file", System.IO.Path.GetFileName(wavPath));
-                content.Add(new StringContent(language), "language");
-
-                // Gửi yêu cầu 
-                HttpResponseMessage response = await client.PostAsync(url, content);
-
-                if (response.IsSuccessStatusCode)
+                lock (_lock)
                 {
-                    return await response.Content.ReadAsStringAsync();
+                    using (PyModule pyModule = Py.CreateScope())
+                    {
+                        // Định nghĩa biến trong phạm vi
+                        pyModule.Set("wavPath", wavPath);
+                        pyModule.Set("model", model);
+                        pyModule.Set("processor", processor);
+                        pyModule.Set("device", device);
+                        pyModule.Set("punctuation_model", punctuationModel);
+                        // Chạy mã Python
+                        pyModule.Exec(@"
+import io
+import soundfile as sf
+import librosa
+import torch
+import numpy as np
+
+
+def audio_transcribe(wavPath, model, processor, device, punctuation_model):
+    try:
+        # Read audio from bytes
+        audio_input, sample_rate = sf.read(wavPath)
+
+        # Ensure that the audio has the correct sample rate
+        if sample_rate != 16000:
+            audio_input = librosa.resample(audio_input, orig_sr=sample_rate, target_sr=16000)
+
+        chunk_size = 10 * 16000  # Kích thước đoạn (10 giây)
+        overlap_size = 2 * 16000  # Kích thước chồng lắp (2 giây)
+        transcripts = []
+
+        for i in range(0, len(audio_input), chunk_size - overlap_size):
+            # Lấy đoạn âm thanh hiện tại
+            chunk = audio_input[i:i + chunk_size]
+
+            # Kiểm tra nếu đoạn âm thanh không đủ dài
+            if len(chunk) < chunk_size:
+                break  # Dừng nếu không còn đủ dữ liệu
+
+            input_values = processor(chunk, return_tensors=""pt"", padding=""longest"").input_values
+            input_values = input_values.to(device)
+
+            with torch.no_grad():
+                logits = model(input_values).logits
+
+            predicted_ids = torch.argmax(logits, dim=-1)
+
+            transcription = processor.decode(predicted_ids[0])
+            transcripts.append(transcription)
+        
+        full_transcription = ' '.join(transcripts)
+
+        final_result = punctuation_model.restore_punctuation(full_transcription)
+        return final_result
+    
+    except ValueError as ve:
+        print(f""ValueError: {ve} - Ensure the audio bytes are valid and compatible."")
+    except RuntimeError as re:
+        print(f""RuntimeError: {re} - Check the model and processor compatibility with the input."")
+    except Exception as e:
+        print(f""An error occurred during audio transcription: {e} - Audio input type: {type(audio_input)}"")
+                            ");
+                        PyObject[] pyObject = new PyObject[] {
+                                pyModule.GetAttr("wavPath"),
+                                pyModule.GetAttr("model"),
+                                pyModule.GetAttr("processor"),
+                                pyModule.GetAttr("device"),
+                                pyModule.GetAttr("punctuation_model")
+                            };
+                        var transcription = pyModule.InvokeMethod("audio_transcribe", pyObject);
+                        _isCompleteTask = true;
+                        return transcription.As<string>();
+                    }
                 }
-                else
-                {
-                    throw new Exception($"Failed to call API: {response.StatusCode}");
-                }
-            }
+            });
         }
     }
 }

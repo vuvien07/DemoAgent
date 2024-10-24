@@ -23,10 +23,16 @@ namespace DemoAgent
         System.Windows.Forms.NotifyIcon nIcon = new System.Windows.Forms.NotifyIcon();
         public Window currWindow;
         public Account? account;
+        public dynamic? _processor;
+        public dynamic? _model;
+        public dynamic? _device;
         public bool _isAutoClosing = false;
+        public dynamic? _speechRecogition;
+        public dynamic? _punctuationModel;
 
         public App()
         {
+            InitializePython();
             string baseDirectory = Directory.GetCurrentDirectory();
             DirectoryInfo directoryInfo = new DirectoryInfo(baseDirectory);
             directoryInfo = directoryInfo.Parent?.Parent?.Parent;
@@ -83,7 +89,12 @@ namespace DemoAgent
                         {
                             userContainer._recordInstance.StopRecording(userContainer._recordInstance.finalPath, app.account);
                         }
-                        app.Shutdown();
+                        // Ẩn cửa sổ trước khi tắt
+                        window.Visibility = Visibility.Hidden;
+                        app.nIcon.Visible = false;
+
+                        // Thực hiện tắt Python đồng bộ trước khi shutdown ứng dụng
+                        await ShutdownPythonAndApp(app);
                     }
                 }
                 else
@@ -117,6 +128,32 @@ namespace DemoAgent
         {
             window.Closing -= Closing_Window;
             window.Closing += Closing_Window;
+        }
+
+        private void InitializePython()
+        {
+            //Environment.SetEnvironmentVariable("PYTHONNET_PYDLL", @"C:\Users\boot.AI\AppData\Local\Programs\Python\Python39\Python39.dll");
+            if (!PythonEngine.IsInitialized)
+                PythonEngine.Initialize();
+            try
+            {
+                using (Py.GIL())
+                {
+                    _speechRecogition = Py.Import("SpeechRecognition");
+                    if (_model is null)
+                        _model = _speechRecogition.load_model();
+                    if (_processor is null)
+                        _processor = _speechRecogition.load_processor();
+                    if (_device is null)
+                        _device = _speechRecogition.get_device();
+                    if (_punctuationModel is null)
+                        _punctuationModel = _speechRecogition.load_punctuation_model();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
     }
 
