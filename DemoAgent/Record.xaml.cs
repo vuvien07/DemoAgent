@@ -248,45 +248,64 @@ namespace DemoAgent
 
         private void UpdateWaveform(float[] audioData)
         {
-            // Xóa canvas cũ
             WaveformCanvas.Children.Clear();
+            AddWaveformBackground(WaveformCanvas);
 
-            // Tạo Polyline để vẽ đường sóng âm
-            var polyline = new Polyline
-            {
-                Stroke = new LinearGradientBrush(
-                    Colors.LightBlue, Colors.Blue, 90), // Tạo hiệu ứng chuyển màu
-                StrokeThickness = 4 // Độ dày đường kẻ
-            };
-
+            int downSampleRate = 4; 
             double centerY = WaveformCanvas.ActualHeight / 2;
             double width = WaveformCanvas.ActualWidth;
-            double pointSpacing = width / audioData.Length;
+            double columnWidth = width / (audioData.Length / downSampleRate); 
 
-            for (int i = 0; i < audioData.Length; i++)
+          
+            for (int i = 0; i < audioData.Length; i += downSampleRate)
             {
-                double x = i * pointSpacing;
-                double y = centerY - (audioData[i] * centerY);
+                double x = (i / downSampleRate) * columnWidth;
+                double height = Math.Abs(audioData[i]) * centerY;  
+                var rectTop = new System.Windows.Shapes.Rectangle
+                {
+                    Width = columnWidth * 0.8, 
+                    Height = height,
+                    Fill = new LinearGradientBrush(Colors.LightGray, Colors.LightGray, 90), 
+                    StrokeThickness = 0
+                };
 
-                polyline.Points.Add(new System.Windows.Point(x, y));
+                // Đặt vị trí cho cột phía trên
+                Canvas.SetLeft(rectTop, x);
+                Canvas.SetTop(rectTop, centerY - height); // Vẽ từ trục giữa lên trên
+
+                // Vẽ cột phía dưới (đối xứng)
+                var rectBottom = new System.Windows.Shapes.Rectangle
+                {
+                    Width = columnWidth * 0.8, // Điều chỉnh khoảng cách giữa các cột
+                    Height = height,
+                    Fill = new LinearGradientBrush(Colors.LightGray, Colors.LightGray, 90), // Hiệu ứng gradient cho cột
+                    StrokeThickness = 0 // Không có đường viền cho hình chữ nhật
+                };
+
+                // Đặt vị trí cho cột phía dưới
+                Canvas.SetLeft(rectBottom, x);
+                Canvas.SetTop(rectBottom, centerY); // Vẽ từ trục giữa xuống dưới
+
+                // Thêm cả hai cột vào canvas
+                WaveformCanvas.Children.Add(rectTop);
+                WaveformCanvas.Children.Add(rectBottom);
             }
-
-            WaveformCanvas.Children.Add(polyline);
-
-            AddWaveformBackground(WaveformCanvas);
         }
 
         private void AddWaveformBackground(Canvas canvas)
         {
+            // Tạo nền với kích thước chính xác
             var background = new System.Windows.Shapes.Rectangle
             {
                 Width = canvas.ActualWidth,
                 Height = canvas.ActualHeight,
                 Fill = new LinearGradientBrush(
-                    Colors.White, Colors.LightGray, 90) // Hiệu ứng gradient cho nền
+                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#F5FBFC"), 
+                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#EBF6F9"), 90)
             };
 
-            canvas.Children.Insert(0, background); // Đặt nền phía sau đường sóng âm
+            // Đặt nền phía sau các cột sóng âm
+            canvas.Children.Insert(0, background);
         }
 
         private void ProcessAudioTranscribe(string fileName)
@@ -478,19 +497,18 @@ namespace DemoAgent
             return false;
         }
 
-        public List<WavFile> GetAllWaveFilesInDirectory(string path, string? name)
+        public List<WavFile> GetAllWaveFilesInDirectory(string path)
         {
             List<WavFile> waveFiles = new List<WavFile>();
             string[] files = Directory.GetFiles(path);
+            int Id = 1;
             try
             {
                 foreach (string file in files)
                 {
                     FileInfo fileInfo = new FileInfo(file);
                     if (fileInfo.Exists && fileInfo.Extension.Equals(".cnp", StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (name.IsNullOrEmpty() || fileInfo.Name.Contains(name))
-                        {
+                    {                    
                             waveFiles.Add(new WavFile
                             {
                                 Name = fileInfo.Name,
@@ -498,8 +516,7 @@ namespace DemoAgent
                                 Size = FormatFileSize(fileInfo.Length),
                                 Description = fileInfo.CreationTime.ToString(),
                                 Path = fileInfo.FullName
-                            });
-                        }
+                            }); ;                 
                     }
                 }
             }
@@ -507,7 +524,11 @@ namespace DemoAgent
             {
                 e.GetBaseException();
             }
-            waveFiles.Reverse();
+            waveFiles = waveFiles.OrderByDescending(w => DateTime.Parse(w.Description)).ToList();
+            foreach (var waveFile in waveFiles)
+            {
+                waveFile.Id = Id++;
+            }
             return waveFiles;
         }
 

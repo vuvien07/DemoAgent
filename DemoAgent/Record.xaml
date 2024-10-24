@@ -6,49 +6,19 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:fa="http://schemas.fontawesome.io/icons/"
             mc:Ignorable="d" 
-                 d:DesignHeight="450" d:DesignWidth="800" Loaded="Window_Loaded">
+                 d:DesignHeight="550" d:DesignWidth="850" Loaded="Window_Loaded">
     <Grid Background="WhiteSmoke">
         <!--<Grid.ColumnDefinitions>
             <ColumnDefinition Width="300"/>
             <ColumnDefinition Width="500"/>
         </Grid.ColumnDefinitions>-->
         <Grid.RowDefinitions>
+            <RowDefinition Height="100"/>
             <RowDefinition Height="450"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="800"/>
+            <ColumnDefinition Width="850"/>
         </Grid.ColumnDefinitions>
-        <!--<StackPanel Grid.Row="0" Grid.Column="0">
-            <StackPanel Orientation="Horizontal">
-                <fa:FontAwesome Icon="Folder" Foreground="Orange" FontSize="30" Margin="10,5,0,0"/>
-                <Label Content="Bản ghi gần đây" FontSize="20" FontWeight="Bold"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <fa:FontAwesome Icon="Search" FontSize="20" Margin="5,3,5,0" />
-                <TextBox x:Name="searchRecord" Height="30" Width="250" TextChanged="searchRecord_TextChanged"/>
-            </StackPanel>
-            <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden" Height="365">
-                <ListView x:Name="lvRecordings" Width="290" BorderThickness="0" Background="Transparent"  MouseWheel="lvRecordings_MouseWheel" >
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel>
-                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13"/>
-                                <TextBlock Text="{Binding Size}" FontStyle="Italic" FontSize="12"/>
-                                <TextBlock Text="{Binding Description}" FontSize="12"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                    <ListView.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Open in Folder" Click="MenuItemOpenFolder_Click"/>
-                            <MenuItem Header="Decode" Click="DecryptWavFile"/>
-                            <MenuItem Header="Delete" Click="MenuItemDelete_Click" />
-                        </ContextMenu>
-                    </ListView.ContextMenu>
-                </ListView>
-            </ScrollViewer>
-
-        </StackPanel>-->
 
         <StackPanel Grid.Row="0" Grid.Column="0">
             <Label Content="Bản ghi" FontSize="20" VerticalAlignment="Center" HorizontalAlignment="Left" FontWeight="Bold"/>
@@ -56,7 +26,10 @@
                 <Label Content="Chọn thiết bị đầu vào " FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Center" />
                 <ComboBox x:Name="DeviceCombobox" Width="255"  Height="30" DisplayMemberPath="ProductName" SelectedValuePath="Id" SelectedIndex="0"/>
             </StackPanel>
-            <Canvas x:Name="WaveformCanvas"  Background="White"  Visibility="Visible" Width="450" Height="140" Margin="0,10,0,10"/>
+        </StackPanel>
+        <StackPanel  Grid.Row="1" Grid.Column="0" Background="White">
+            
+        <Canvas x:Name="WaveformCanvas"  Background="#F5FBFC"  Visibility="Visible" Width="auto" Height="360" Margin="0,0,0,10"/>
             <Label x:Name="FileNameLable" FontSize="20" HorizontalAlignment="Center"/>
             <Line X1="0" Y1="0" X2="400" Y2="0" Stroke="LightGray" StrokeThickness="3" HorizontalAlignment="Center" />
             <Label x:Name="NoticeLable" FontSize="15" HorizontalAlignment="Center" Visibility="Collapsed" Width="400" Margin="0,15,0,0">
@@ -71,8 +44,8 @@
                     </Border>
                 </Label.Content>
             </Label>
-
         </StackPanel>
+
     </Grid>
 
 </UserControl>
